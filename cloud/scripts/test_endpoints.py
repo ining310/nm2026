@@ -17,8 +17,12 @@ import json
 import os
 import sys
 import uuid
+from pathlib import Path
 
 import requests
+from dotenv import load_dotenv
+
+load_dotenv(Path(__file__).parents[2] / ".env")
 
 API_BASE   = os.environ.get("API_BASE", "http://localhost:3000")
 MACHINE_ID = "machine_001"

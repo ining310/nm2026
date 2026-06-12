@@ -1,4 +1,5 @@
 """DynamoDB helpers for recycling-sessions table."""
+import json
 import os
 import time
 
@@ -72,7 +73,7 @@ def update_result(
         ExpressionAttributeNames={"#s": "status"},
         ExpressionAttributeValues={
             ":done": "done",
-            ":r":    result,
+            ":r":    json.dumps(result, ensure_ascii=False),
             ":tx":   tx_digest    or "N/A",
             ":url":  explorer_url or "N/A",
             ":ts":   int(time.time()),

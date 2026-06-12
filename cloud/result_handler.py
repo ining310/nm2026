@@ -69,13 +69,16 @@ def handler(event, context):
 
     # ── no-reward path ────────────────────────────────────────────────────────
     else:
-        line_bot.push(line_user_id, (
-            f"❌ 無法明確分類\n"
-            f"類別：{cat_zh}\n"
-            f"信心度：{confidence:.0%}\n"
-            f"原因：{reason}\n\n"
-            f"本次無獎勵。請確認物品類別後再試。"
-        ))
+        try:
+            line_bot.push(line_user_id, (
+                f"❌ 無法明確分類\n"
+                f"類別：{cat_zh}\n"
+                f"信心度：{confidence:.0%}\n"
+                f"原因：{reason}\n\n"
+                f"本次無獎勵。請確認物品類別後再試。"
+            ))
+        except Exception as exc:
+            print(f"[ERROR] LINE push failed: {exc}")
 
     # ── persist result ────────────────────────────────────────────────────────
     db.update_result(session_id, body, tx_digest, explorer_url)
