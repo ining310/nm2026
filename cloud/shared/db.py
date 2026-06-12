@@ -1,0 +1,80 @@
+"""DynamoDB helpers for recycling-sessions table."""
+import os
+import time
+
+import boto3
+from boto3.dynamodb.conditions import Key
+
+_table = None
+
+
+def _get_table():
+    global _table
+    if _table is None:
+        _table = boto3.resource("dynamodb").Table(os.environ["DYNAMODB_TABLE"])
+    return _table
+
+
+def create_session(
+    session_id: str,
+    machine_id: str,
+    line_user_id: str,
+    wallet_address: str,
+) -> None:
+    """Write a new session with status='paid'."""
+    _get_table().put_item(
+        Item={
+            "session_id":           session_id,
+            "machine_id":           machine_id,
+            "status":               "paid",
+            "user_line_id":         line_user_id,
+            "user_wallet_address":  wallet_address,
+            "created_at":           int(time.time()),
+            "updated_at":           int(time.time()),
+        },
+        # Prevent overwriting an existing session with the same ID
+        ConditionExpression="attribute_not_exists(session_id)",
+    )
+
+
+def get_paid_session(machine_id: str) -> dict | None:
+    """Return the current 'paid' session for a machine, or None."""
+    resp = _get_table().query(
+        IndexName="machine_id-status-index",
+        KeyConditionExpression=(
+            Key("machine_id").eq(machine_id) & Key("status").eq("paid")
+        ),
+        Limit=1,
+    )
+    items = resp.get("Items", [])
+    return items[0] if items else None
+
+
+def get_session(session_id: str) -> dict | None:
+    """Fetch a session by primary key."""
+    resp = _get_table().get_item(Key={"session_id": session_id})
+    return resp.get("Item")
+
+
+def update_result(
+    session_id: str,
+    result: dict,
+    tx_digest: str | None,
+    explorer_url: str | None,
+) -> None:
+    """Mark session as done and store classification + IOTA result."""
+    _get_table().update_item(
+        Key={"session_id": session_id},
+        UpdateExpression=(
+            "SET #s = :done, classification_result = :r, "
+            "iota_tx_digest = :tx, iota_explorer_url = :url, updated_at = :ts"
+        ),
+        ExpressionAttributeNames={"#s": "status"},
+        ExpressionAttributeValues={
+            ":done": "done",
+            ":r":    result,
+            ":tx":   tx_digest    or "N/A",
+            ":url":  explorer_url or "N/A",
+            ":ts":   int(time.time()),
+        },
+    )

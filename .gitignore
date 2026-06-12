@@ -1,0 +1,36 @@
+# Environment / secrets
+.env
+*.env
+*.pem
+*.key
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+dist/
+build/
+
+# SAM build artifacts
+cloud/.aws-sam/
+.aws-sam/
+
+# AWS credentials
+.aws/
+
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Captured images (generated at runtime)
+edge/captured*.jpg
+
+# Others
+client
+slides
+tmp
