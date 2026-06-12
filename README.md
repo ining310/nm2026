@@ -8,12 +8,15 @@ The user first uses the camera on their phone to scan a QR code on the recycling
 
 After payment is confirmed, the user **places the garbage directly onto the detection platform** (there is no entry gate). Once the garbage is placed, the user **manually presses the physical button on the machine** to trigger the detection process.
 
-The Raspberry Pi camera then captures the image of the garbage and uses an AI model to classify which recycling bin it should be thrown into. After classification, the Raspberry Pi controls two motors:
+The Raspberry Pi camera then captures the image of the garbage. A two-stage AI pipeline runs:
+1. **Hailo AI Hat** (YOLOv8) performs real-time object detection to identify what is in the frame.
+2. **GPT-4V (VLM)** classifies the item into a recycling category and determines which bin it should go into.
 
-1. **Motor 2** rotates the internal platform to the correct bin position.
-2. **Motor 3** opens the dumping door to drop the garbage into the selected bin.
+After classification, the Raspberry Pi controls three SG90 servo motors via PWM:
+1. **Turntable servo** rotates the platform to the correct bin position (OTHER=0°, METAL=45°, PAPER=135°, PLASTIC=180°).
+2. **Gate servo A + Gate servo B** open together to drop the garbage into the selected bin, then close again.
 
-After the garbage is thrown into the bin, Motor 3 closes the dumping door, and Motor 2 returns the internal platform to the original starting position. The Raspberry Pi then calls the Lambda endpoint once with the result — the cloud immediately handles the IOTA reward or error notification and pushes the result to the user via LINE chatbot. The system then resets and waits for the next user.
+After the garbage is dropped, the turntable returns to the idle position (90°). The Raspberry Pi then calls the Lambda endpoint once with the result — the cloud immediately handles the IOTA reward or error notification and pushes the result to the user via LINE chatbot. The system then resets and waits for the next user.
 
 If the garbage can be clearly classified as recyclable into only one category, the user receives a reward through the IOTA wallet. If the item is unclear, mixed, or not recyclable, no reward is returned.
 
@@ -73,13 +76,11 @@ Raspberry Pi camera captures image
         ↓
 AI model classifies the garbage
         ↓
-Raspberry Pi controls Motor 2 to rotate to the target bin
+Raspberry Pi turntable servo rotates to target bin position
         ↓
-Raspberry Pi controls Motor 3 to dump the garbage
+Gate servo A + B open → garbage drops into bin → gates close
         ↓
-Motor 3 closes the dumping door
-        ↓
-Motor 2 returns to the original starting position
+Turntable servo returns to idle position (90°)
         ↓
 Raspberry Pi calls Lambda /result endpoint once
         ↓
@@ -188,76 +189,49 @@ Example output:
 
 ---
 
-### Step 6: Motor 2 Rotates to Target Bin
+### Step 6: Turntable Servo Rotates to Target Bin
 
-Motor 2 is responsible for rotating the internal platform or chute to the correct bin position.
+The turntable servo rotates the platform to align with the correct bin. The idle position is 90° (centre). Categories map to angles as follows:
 
-For example, if the garbage needs to be thrown into **Bin A**, the Raspberry Pi sends a signal to Motor 2 and tells it how many degrees it should rotate.
-
-Example bin-angle mapping:
-
-| Target Bin | Garbage Type Example | Motor 2 Angle |
-|---|---|---:|
-| Bin A | Metal can | 0° |
-| Bin B | Plastic bottle | 90° |
-| Bin C | Paper | 180° |
-| Bin D | General waste | 270° |
-
-If the target bin is Bin A:
-
-```text
-Raspberry Pi → Motor 2: rotate to 0°
-```
-
-If the target bin is Bin B:
-
-```text
-Raspberry Pi → Motor 2: rotate to 90°
-```
-
----
-
-### Step 7: Motor 3 Dumps the Garbage
-
-After Motor 2 reaches the correct position, the Raspberry Pi sends a signal to Motor 3.
-
-Motor 3 opens the dumping door to drop the garbage into the target bin.
+| Category | Turntable Angle |
+|---|---:|
+| OTHER | 0° (far left) |
+| METAL | 45° (left) |
+| PAPER | 135° (right) |
+| PLASTIC | 180° (far right) |
 
 Example:
 
 ```text
-Raspberry Pi → Motor 3: rotate 180° to open dumping door
+predicted_category = "metal_can"  →  Category.METAL  →  turntable rotates to 45°
 ```
-
-The garbage then falls into the selected bin.
 
 ---
 
-### Step 8: Motor 3 Closes the Dumping Door
+### Step 7: Gate Servos Open and Drop the Garbage
 
-After the garbage has been dropped, Motor 3 rotates in the reverse direction to close the dumping door.
-
-Example:
+After the turntable reaches the correct position, gate servo A and gate servo B rotate simultaneously to open the floor, dropping the garbage into the bin below.
 
 ```text
-Raspberry Pi → Motor 3: rotate -90° to close dumping door
+Gate A: 110° (closed) → 20° (open)
+Gate B:  40° (closed) → 130° (open)
 ```
+
+The garbage falls into the selected bin. After a short wait, both gates close back to their original positions.
 
 ---
 
-### Step 9: Motor 2 Returns to Starting Position
+### Step 8: Turntable Returns to Idle Position
 
-After Motor 3 closes the dumping door, Motor 2 rotates back to the original starting position.
-
-Example:
+After the gates close, the turntable servo rotates back to the centre idle position.
 
 ```text
-Raspberry Pi → Motor 2: return to 0°
+Turntable: returns to 90° (idle)
 ```
 
 ---
 
-### Step 10: Raspberry Pi Calls Lambda Once
+### Step 9: Raspberry Pi Calls Lambda Once
 
 After the motors finish, the Raspberry Pi sends **one POST request** to the Lambda `/result` endpoint with the classification result.
 
@@ -449,15 +423,17 @@ Please check the recycling rules before trying again.
 
 | Component | Purpose |
 |---|---|
-| Raspberry Pi | Main controller for camera, AI model, sensors, and motors |
+| Raspberry Pi 5 | Main controller for camera, AI model, GPIO button, and servos |
+| Hailo AI Hat | Runs YOLOv8 object detection on-device in real time |
 | Raspberry Pi Camera | Captures image of garbage |
 | Physical Button | Pressed by user to trigger detection after placing garbage |
-| Motor 2 | Rotates the platform or chute to the correct bin position |
-| Motor 3 | Opens/closes the dumping door |
+| SG90 Turntable Servo | Rotates the platform to the correct bin position (0°/45°/135°/180°) |
+| SG90 Gate Servo A | Left gate — opens/closes to drop garbage |
+| SG90 Gate Servo B | Right gate — opens/closes to drop garbage |
 | QR Code Label | Allows users to scan the machine and start a session |
 | Detection Platform | Open tray where user places garbage for detection |
 | Bins | Receive different categories of garbage |
-| Power Supply | Powers Raspberry Pi and motors |
+| Power Supply | Powers Raspberry Pi and servos |
 
 ---
 
@@ -476,73 +452,52 @@ Please check the recycling rules before trying again.
 
 ## 11. AI Classification Design
 
-The AI model can be implemented in two possible ways.
+The system uses a two-stage AI pipeline:
 
-### 11.1 Image Classification
+### 11.1 Stage 1 — Hailo Object Detection (YOLOv8)
 
-The model classifies the entire image into one category.
+The Hailo AI Hat runs YOLOv8 on-device to detect objects in the captured image. It returns the top detected object label and confidence score. This stage acts as a fast pre-filter and provides the image path for stage 2.
 
-Possible categories:
+### 11.2 Stage 2 — GPT-4V Visual Language Model (VLM)
 
-- metal can
-- plastic bottle
-- paper
-- glass
-- general waste
-- unknown
+The captured image is sent to GPT-4V, which classifies the garbage into one of the following categories and determines the target bin:
 
-This is easier to implement and suitable for the first prototype.
+| predicted_category | target_bin |
+|---|---|
+| metal_can | Bin A → METAL (45°) |
+| plastic_bottle | Bin B → PLASTIC (180°) |
+| paper | Bin C → PAPER (135°) |
+| glass | Bin D → OTHER (0°) |
+| general_waste | manual_check → OTHER (0°) |
+| unknown | manual_check → OTHER (0°) |
+| multiple_categories | manual_check → OTHER (0°) |
 
----
-
-### 11.2 Object Detection
-
-The model detects and classifies objects inside the image.
-
-This is useful if the detection area may contain multiple items.
-
-However, for the demo version, image classification is enough.
+The VLM also returns `confidence`, `recyclable`, `single_category`, and `reward_eligible` fields used by Lambda to determine whether to issue an IOTA reward.
 
 ---
 
 ## 12. Motor Control Logic
 
-The Raspberry Pi should follow this control logic:
+The Raspberry Pi follows this control logic:
 
 ```python
 START
 
-wait_for_button_press()   # GPIO interrupt, no polling
+wait_for_button_press()          # GPIO interrupt, no polling
 
-image = capture_image()
+hailo_result = detect_object_detailed()   # Stage 1: Hailo YOLOv8
+vlm_result   = run_vlm(hailo_result["image_path"])  # Stage 2: GPT-4V
 
-classification_result = run_ai_model(image)
+category = CATEGORY_MAP[vlm_result["predicted_category"]]
+# e.g. "metal_can" → Category.METAL
 
-target_bin = classification_result["target_bin"]
-
-if target_bin == "Bin A":
-    rotate_motor_2(angle_A)
-elif target_bin == "Bin B":
-    rotate_motor_2(angle_B)
-elif target_bin == "Bin C":
-    rotate_motor_2(angle_C)
-elif target_bin == "Bin D":
-    rotate_motor_2(angle_D)
-else:
-    rotate_motor_2(manual_check_angle)
-
-wait_until_motor_2_reaches_position()
-
-rotate_motor_3(open_angle)
-
-wait_for_garbage_to_fall()
-
-rotate_motor_3(close_angle)
-
-rotate_motor_2(starting_angle)
+recycle_bin.dispose(category)
+# 1. turntable rotates to category angle
+# 2. gate A + B open → garbage drops → gates close
+# 3. turntable returns to idle (90°)
 
 # Fire once — Lambda handles everything from here
-send_result_to_lambda(classification_result)
+send_result_to_lambda(vlm_result)
 
 END
 ```
@@ -588,14 +543,12 @@ A simple demo flow can be:
 5. User places a metal can directly onto the detection platform.
 6. User presses the physical button on the machine.
 7. Camera captures the image.
-8. AI classifies the item as Metal Can.
-9. The system selects Bin A.
-10. Motor 2 rotates to Bin A.
-11. Motor 3 opens the dumping door.
-12. The can falls into Bin A.
-13. Motor 3 closes the dumping door.
-14. Motor 2 returns to the original position.
-15. Raspberry Pi calls Lambda /result once.
-16. Lambda sends 1.1 dollars back to the user's wallet.
-17. LINE chatbot displays the reward result.
+8. Hailo detects an object in the frame.
+9. GPT-4V classifies it as metal_can → Category.METAL → turntable angle 45°.
+10. Turntable servo rotates to 45°.
+11. Gate servo A + B open → can drops into METAL bin → gates close.
+12. Turntable returns to idle (90°).
+13. Raspberry Pi calls Lambda /result once.
+14. Lambda sends 1.1 IOTA back to the user's wallet.
+15. LINE chatbot displays the reward result with explorer URL.
 ```
