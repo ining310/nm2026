@@ -1,5 +1,5 @@
 // ── config (replace before deploying) ──────────────────────────────────────
-const LIFF_ID  = "YOUR_LIFF_ID";          // from LINE Developer Console
+const LIFF_ID  = "2010382965-397QCX0y";          // from LINE Developer Console
 const API_BASE = "YOUR_API_GATEWAY_URL";  // e.g. https://xxxxx.execute-api.ap-northeast-1.amazonaws.com/Prod
 // ──────────────────────────────────────────────────────────────────────────────
 
