@@ -4,7 +4,7 @@ Description: AI Smart Recycling Bin — Cloud Backend
 
 Globals:
   Function:
-    Runtime: python3.12
+    Runtime: python3.11
     Timeout: 60          # IOTA tx confirmation can take tens of seconds
     CodeUri: ./          # relative to cloud/ directory (all handlers + shared/ packaged together)
     Environment:
