@@ -31,9 +31,10 @@ def handler(event, context):
     try:
         line_bot.push(
             line_user_id,
-            "✅ 付款確認！\n\n"
+            "✅ 登記成功！\n\n"
             "請將垃圾放上偵測平台，\n"
-            "再按下機台上的按鈕開始偵測。",
+            "再按下機台上的按鈕開始偵測。\n\n"
+            "AI 判斷可回收即可獲得 3 IOTA 獎勵。",
         )
     except Exception as exc:
         # LINE push failure is non-fatal; session is already created

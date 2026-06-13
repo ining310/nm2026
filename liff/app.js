@@ -74,7 +74,7 @@ async function pay() {
       throw new Error(err.error || `HTTP ${resp.status}`);
     }
 
-    setMsg(ICON_OK, "付款確認。請將垃圾放上偵測平台，再按下機台按鈕。", "success");
+    setMsg(ICON_OK, "已登記！請將垃圾放上偵測平台，再按下機台按鈕。", "success");
     // Keep button disabled — one session per scan
     btn.innerHTML = `
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
