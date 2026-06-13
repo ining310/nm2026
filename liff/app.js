@@ -93,24 +93,44 @@ async function loadHistory() {
       .then((r) => r.json()).catch(() => null),
   ]);
 
-  renderBalance(balData, walletAddr);
-  renderSessions(histData ? (histData.sessions || []) : null);
+  const sessions = histData ? (histData.sessions || []) : [];
+  renderBalance(balData, walletAddr, sessions);
+  renderSessions(histData ? sessions : null);
 }
 
 // ── History: render balance ───────────────────────────────────────────────────
-function renderBalance(data, walletAddr) {
-  const amountEl = document.getElementById("balance-amount");
-  const addrText = document.getElementById("balance-address-text");
-  const linkEl   = document.getElementById("balance-link");
+function renderBalance(data, walletAddr, sessions = []) {
+  const amountEl  = document.getElementById("balance-amount");
+  const addrText  = document.getElementById("balance-address-text");
+  const linkEl    = document.getElementById("balance-link");
+  const statsEl   = document.getElementById("balance-stats");
 
   amountEl.textContent = (data && data.ok) ? data.balance_iota.toFixed(1) : "—";
-
-  const short = walletAddr.length > 12
-    ? `${walletAddr.slice(0, 8)}…${walletAddr.slice(-4)}`
-    : walletAddr;
-  addrText.textContent = short;
-
+  addrText.textContent = walletAddr;
   linkEl.href = `https://explorer.iota.org/address/${walletAddr}?network=devnet`;
+
+  // Stats
+  const total    = sessions.length;
+  const rewarded = sessions.filter((s) => s.rewarded).length;
+  const rate     = total > 0 ? Math.round((rewarded / total) * 100) : 0;
+
+  if (total === 0) {
+    statsEl.innerHTML = "";
+    return;
+  }
+  statsEl.innerHTML = `
+    <div class="balance-stat">
+      <span class="balance-stat-value">${total}</span>
+      <span class="balance-stat-label">次投遞</span>
+    </div>
+    <div class="balance-stat">
+      <span class="balance-stat-value">${rewarded}</span>
+      <span class="balance-stat-label">次獲獎</span>
+    </div>
+    <div class="balance-stat">
+      <span class="balance-stat-value">${rate}%</span>
+      <span class="balance-stat-label">成功率</span>
+    </div>`;
 }
 
 // ── History: render session list ──────────────────────────────────────────────
