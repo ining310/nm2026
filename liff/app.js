@@ -282,13 +282,38 @@ async function pay() {
       throw new Error(err.error || `HTTP ${resp.status}`);
     }
 
-    setMsg(ICON_OK, "已登記！請將垃圾放上偵測平台，再按下機台按鈕。", "success");
     btn.innerHTML = `
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
         <polyline points="20 6 9 17 4 12"/>
       </svg>
-      已確認`;
+      已登記`;
+
+    // Next-step callout: guide user to press the physical machine button
+    msg.className = "";
+    msg.innerHTML = `
+      <div class="next-step">
+        <div class="next-step-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+               stroke="#15643C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        </div>
+        <div class="next-step-body">
+          <div class="next-step-done">登記成功</div>
+          <div class="next-step-action">
+            放上物品後，按下
+            <span class="press-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                   stroke="#1A5C42" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="5" y="2" width="14" height="20" rx="3"/>
+                <line x1="12" y1="6" x2="12" y2="10"/>
+              </svg>
+            </span>
+            機台上的按鈕
+          </div>
+        </div>
+      </div>`;
 
   } catch (err) {
     setMsg(ICON_ERR, `登記失敗：${err.message}`, "error");
