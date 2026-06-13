@@ -1,7 +1,23 @@
 // ── config (replace before deploying) ──────────────────────────────────────
 const LIFF_ID  = "2010382965-397QCX0y";
 const API_BASE = "https://wsmw87jtx4.execute-api.ap-northeast-1.amazonaws.com/Prod";
-// ──────────────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+
+// ── Demo wallets (pre-funded devnet addresses) ────────────────────────────────
+const DEMO_WALLETS = [
+  "0x43cd396a1525b4f2f92c5f533c5a4340f574cce93afe26851552d7189441022f",
+  "0x2d688b5ba7418daf47e74361213832066f5fba740d50ff95321ade12cd6a9929",
+  "0xe35bad3d30e2e0a295f558569593d462f24e0a58aa16c4809dea445873baf6cd",
+  "0xffbe22613a79d77427d1425225c597cef6a42a75ad18b718e70753e4cc672d83",
+];
+
+function selectDemo(index) {
+  document.getElementById("wallet").value = DEMO_WALLETS[index];
+  document.querySelectorAll(".demo-btn").forEach((b, i) => {
+    b.classList.toggle("active", i === index);
+  });
+}
+// ─────────────────────────────────────────────────────────────────────────────
 
 const btn = document.getElementById("payBtn");
 const msg = document.getElementById("msg");

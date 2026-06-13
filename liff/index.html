@@ -133,6 +133,29 @@
       margin-top: 5px;
     }
 
+    /* ── Demo wallets ───────────────────────────────────────── */
+    .demo-wallets { margin-bottom: 10px; }
+    .demo-label {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    .demo-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+    .demo-btn {
+      width: auto;
+      padding: 5px 12px;
+      background: var(--accent-light);
+      color: var(--accent);
+      border: 1.5px solid #C8D9EE;
+      border-radius: var(--radius-sm);
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .demo-btn:hover { background: #dce8f5; border-color: var(--accent); }
+    .demo-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
     /* ── Fee row ─────────────────────────────────────────────── */
     .fee-row {
       background: var(--accent-light);
@@ -242,6 +265,18 @@
         </svg>
         獎勵錢包地址
       </div>
+
+      <!-- Demo wallet quick-select -->
+      <div class="demo-wallets">
+        <p class="demo-label">選擇測試錢包（或在下方自行填入）</p>
+        <div class="demo-btns">
+          <button type="button" class="demo-btn" onclick="selectDemo(0)">錢包 A</button>
+          <button type="button" class="demo-btn" onclick="selectDemo(1)">錢包 B</button>
+          <button type="button" class="demo-btn" onclick="selectDemo(2)">錢包 C</button>
+          <button type="button" class="demo-btn" onclick="selectDemo(3)">錢包 D</button>
+        </div>
+      </div>
+
       <div class="input-wrap">
         <input
           type="text"
