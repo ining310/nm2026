@@ -27,7 +27,7 @@ def generate_keypair() -> tuple[str, str]:
     pk_bytes = secrets.token_bytes(32)
     priv     = Ed25519PrivateKey.from_private_bytes(pk_bytes)
     pub      = priv.public_key().public_bytes(Encoding.Raw, PublicFormat.Raw)
-    addr     = "0x" + hashlib.blake2b(bytes([0x00]) + pub, digest_size=32).hexdigest()
+    addr     = "0x" + hashlib.blake2b(pub, digest_size=32).hexdigest()
     return pk_bytes.hex(), addr
 
 

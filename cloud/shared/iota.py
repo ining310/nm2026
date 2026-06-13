@@ -50,14 +50,15 @@ def _derive_address(private_key_bytes: bytes) -> str:
     """
     priv = Ed25519PrivateKey.from_private_bytes(private_key_bytes)
     pub  = priv.public_key().public_bytes(Encoding.Raw, PublicFormat.Raw)
-    addr = hashlib.blake2b(bytes([0x00]) + pub, digest_size=32).digest()
+    addr = hashlib.blake2b(pub, digest_size=32).digest()
     return "0x" + addr.hex()
 
 
 def _sign(private_key_bytes: bytes, tx_bytes_b64: str) -> str:
     """Return a base64-encoded IOTA signature envelope."""
     tx_bytes = base64.b64decode(tx_bytes_b64)
-    message  = _INTENT + tx_bytes
+    # IOTA Rebased: sign blake2b-256(intent || tx_bytes), not raw bytes
+    message  = hashlib.blake2b(_INTENT + tx_bytes, digest_size=32).digest()
 
     priv = Ed25519PrivateKey.from_private_bytes(private_key_bytes)
     sig  = priv.sign(message)                                       # 64 bytes
@@ -87,7 +88,7 @@ def send_reward(to_address: str, amount_mist: int) -> dict:
     explorer = os.environ["IOTA_EXPLORER_BASE"]
 
     # 1. Find a gas coin owned by the machine wallet
-    coins_resp = _rpc("iota_getCoins", [
+    coins_resp = _rpc("iotax_getCoins", [
         sender,
         "0x2::iota::IOTA",
         None,   # cursor

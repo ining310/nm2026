@@ -60,12 +60,14 @@ def handler(event, context):
             ))
         except Exception as exc:
             print(f"[ERROR] IOTA send_reward: {exc}")
-            # Still mark session as done; notify user of the issue
-            line_bot.push(line_user_id, (
-                f"♻️ 分類成功，但獎勵發送失敗，請聯繫管理員。\n"
-                f"類別：{cat_zh}｜信心度：{confidence:.0%}\n"
-                f"錯誤：{exc}"
-            ))
+            try:
+                line_bot.push(line_user_id, (
+                    f"♻️ 分類成功，但獎勵發送失敗，請聯繫管理員。\n"
+                    f"類別：{cat_zh}｜信心度：{confidence:.0%}\n"
+                    f"錯誤：{exc}"
+                ))
+            except Exception as line_exc:
+                print(f"[ERROR] LINE push failed: {line_exc}")
 
     # ── no-reward path ────────────────────────────────────────────────────────
     else:
