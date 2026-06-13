@@ -88,6 +88,7 @@
     .step-wallet-content {
       margin-top: 10px;
       padding-left: 34px; /* 22px num + 12px gap */
+      width: 100%;        /* flex-start parent won't stretch children */
     }
 
     /* ── Demo wallets ───────────────────────────────────────────── */
@@ -220,7 +221,7 @@
     .balance-card:hover { border-color: var(--accent); }
     .balance-top {
       display: flex; align-items: center; justify-content: space-between;
-      margin-bottom: 6px;
+      margin-bottom: 14px;
     }
     .balance-label {
       font-size: 0.72rem; font-weight: 600; letter-spacing: 0.05em;
@@ -473,6 +474,6 @@
   </nav>
 
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-  <script src="app.js?v=5"></script>
+  <script src="app.js?v=6"></script>
 </body>
 </html>
