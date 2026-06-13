@@ -14,7 +14,7 @@ Globals:
         IOTA_RPC_URL:                https://indexer.devnet.iota.cafe
         IOTA_FAUCET_URL:             https://faucet.devnet.iota.cafe/gas
         IOTA_EXPLORER_BASE:          https://explorer.rebased.iota.org
-        IOTA_REWARD_AMOUNT_MIST:     "1100000000"   # 1.1 IOTA
+        IOTA_REWARD_AMOUNT_MIST:     "3000000000"   # 3 IOTA
         LINE_CHANNEL_ACCESS_TOKEN:
           !Sub "{{resolve:ssm:/recycling/line_token:1}}"
         IOTA_MACHINE_PRIVATE_KEY_HEX:
@@ -82,9 +82,11 @@ Resources:
       TableName:    recycling-sessions
       BillingMode:  PAY_PER_REQUEST
       AttributeDefinitions:
-        - { AttributeName: session_id, AttributeType: S }
-        - { AttributeName: machine_id, AttributeType: S }
-        - { AttributeName: status,     AttributeType: S }
+        - { AttributeName: session_id,   AttributeType: S }
+        - { AttributeName: machine_id,   AttributeType: S }
+        - { AttributeName: status,       AttributeType: S }
+        - { AttributeName: user_line_id, AttributeType: S }
+        - { AttributeName: created_at,   AttributeType: N }
       KeySchema:
         - { AttributeName: session_id, KeyType: HASH }
       GlobalSecondaryIndexes:
@@ -94,6 +96,12 @@ Resources:
             - { AttributeName: status,     KeyType: RANGE }
           Projection:
             ProjectionType: ALL
+        - IndexName: user_line_id-created_at-index
+          KeySchema:
+            - { AttributeName: user_line_id, KeyType: HASH }
+            - { AttributeName: created_at,   KeyType: RANGE }
+          Projection:
+            ProjectionType: KEYS_ONLY
 
 Outputs:
   ApiUrl:

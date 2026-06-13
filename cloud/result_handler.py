@@ -84,7 +84,12 @@ def handler(event, context):
 
     # ── persist result ────────────────────────────────────────────────────────
     db.update_result(session_id, body, tx_digest, explorer_url)
-    return _resp(200, {"ok": True})
+    return _resp(200, {
+        "ok":               True,
+        "rewarded":         reward_eligible and tx_digest is not None,
+        "iota_tx_digest":   tx_digest,
+        "iota_explorer_url": explorer_url,
+    })
 
 
 def _resp(status: int, body: dict) -> dict:

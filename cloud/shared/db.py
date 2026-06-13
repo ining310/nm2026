@@ -51,6 +51,26 @@ def get_paid_session(machine_id: str) -> dict | None:
     return items[0] if items else None
 
 
+
+def count_today(line_user_id: str) -> int:
+    """Return the number of sessions created today (UTC) for this LINE user."""
+    import datetime
+    today_start = int(
+        datetime.datetime.now(datetime.timezone.utc)
+        .replace(hour=0, minute=0, second=0, microsecond=0)
+        .timestamp()
+    )
+    resp = _get_table().query(
+        IndexName="user_line_id-created_at-index",
+        KeyConditionExpression=(
+            Key("user_line_id").eq(line_user_id)
+            & Key("created_at").gte(today_start)
+        ),
+        Select="COUNT",
+    )
+    return resp["Count"]
+
+
 def get_session(session_id: str) -> dict | None:
     """Fetch a session by primary key."""
     resp = _get_table().get_item(Key={"session_id": session_id})

@@ -28,7 +28,15 @@ liff.init({ liffId: LIFF_ID })
     return liff.getProfile();
   })
   .then((profile) => {
-    if (profile) lineUserId = profile.userId;
+    if (!profile) return;
+    lineUserId = profile.userId;
+    return fetch(`${API_BASE}/wallet?line_user_id=${encodeURIComponent(lineUserId)}`);
+  })
+  .then((resp) => resp && resp.json())
+  .then((data) => {
+    if (data && data.wallet_address) {
+      document.getElementById("wallet").value = data.wallet_address;
+    }
   })
   .catch((err) => {
     setMsg(ICON_ERR, `LIFF 初始化失敗：${err.message}`, "error");

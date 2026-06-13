@@ -19,6 +19,14 @@ def handler(event, context):
     except (KeyError, json.JSONDecodeError) as exc:
         return _resp(400, {"ok": False, "error": f"Bad request: {exc}"})
 
+    # ── daily limit ───────────────────────────────────────────────────────────
+    DAILY_LIMIT = 3
+    try:
+        if db.count_today(line_user_id) >= DAILY_LIMIT:
+            return _resp(429, {"ok": False, "error": f"Daily limit of {DAILY_LIMIT} recycles reached. Try again tomorrow."})
+    except Exception as exc:
+        print(f"[WARN] /pay count_today failed: {exc}")
+
     # ── persist session ───────────────────────────────────────────────────────
     try:
         db.create_session(session_id, machine_id, line_user_id, wallet_address)
