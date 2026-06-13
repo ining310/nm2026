@@ -1,7 +1,23 @@
 // ── config (replace before deploying) ──────────────────────────────────────
 const LIFF_ID  = "2010382965-397QCX0y";
 const API_BASE = "https://wsmw87jtx4.execute-api.ap-northeast-1.amazonaws.com/Prod";
-// ──────────────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+
+// ── Demo wallets (pre-funded devnet addresses) ────────────────────────────────
+const DEMO_WALLETS = [
+  "0x43cd396a1525b4f2f92c5f533c5a4340f574cce93afe26851552d7189441022f",
+  "0x2d688b5ba7418daf47e74361213832066f5fba740d50ff95321ade12cd6a9929",
+  "0xe35bad3d30e2e0a295f558569593d462f24e0a58aa16c4809dea445873baf6cd",
+  "0xffbe22613a79d77427d1425225c597cef6a42a75ad18b718e70753e4cc672d83",
+];
+
+function selectDemo(index) {
+  document.getElementById("wallet").value = DEMO_WALLETS[index];
+  document.querySelectorAll(".demo-btn").forEach((b, i) => {
+    b.classList.toggle("active", i === index);
+  });
+}
+// ─────────────────────────────────────────────────────────────────────────────
 
 const btn = document.getElementById("payBtn");
 const msg = document.getElementById("msg");
@@ -28,7 +44,15 @@ liff.init({ liffId: LIFF_ID })
     return liff.getProfile();
   })
   .then((profile) => {
-    if (profile) lineUserId = profile.userId;
+    if (!profile) return;
+    lineUserId = profile.userId;
+    return fetch(`${API_BASE}/wallet?line_user_id=${encodeURIComponent(lineUserId)}`);
+  })
+  .then((resp) => resp && resp.json())
+  .then((data) => {
+    if (data && data.wallet_address) {
+      document.getElementById("wallet").value = data.wallet_address;
+    }
   })
   .catch((err) => {
     setMsg(ICON_ERR, `LIFF 初始化失敗：${err.message}`, "error");
@@ -74,7 +98,7 @@ async function pay() {
       throw new Error(err.error || `HTTP ${resp.status}`);
     }
 
-    setMsg(ICON_OK, "付款確認。請將垃圾放上偵測平台，再按下機台按鈕。", "success");
+    setMsg(ICON_OK, "已登記！請將垃圾放上偵測平台，再按下機台按鈕。", "success");
     // Keep button disabled — one session per scan
     btn.innerHTML = `
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none"

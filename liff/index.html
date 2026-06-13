@@ -133,6 +133,29 @@
       margin-top: 5px;
     }
 
+    /* ── Demo wallets ───────────────────────────────────────── */
+    .demo-wallets { margin-bottom: 10px; }
+    .demo-label {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    .demo-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+    .demo-btn {
+      width: auto;
+      padding: 5px 12px;
+      background: var(--accent-light);
+      color: var(--accent);
+      border: 1.5px solid #C8D9EE;
+      border-radius: var(--radius-sm);
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .demo-btn:hover { background: #dce8f5; border-color: var(--accent); }
+    .demo-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
     /* ── Fee row ─────────────────────────────────────────────── */
     .fee-row {
       background: var(--accent-light);
@@ -224,7 +247,7 @@
       </div>
       <h1>AI 智慧回收機</h1>
     </div>
-    <p class="subtitle">掃碼成功。請填入您的 IOTA 錢包地址，確認後即開始計費。</p>
+    <p class="subtitle">掃碼成功。請填入您的 IOTA 錢包地址，分類成功即可獲得獎勵。</p>
 
     <div class="divider"></div>
 
@@ -242,6 +265,18 @@
         </svg>
         獎勵錢包地址
       </div>
+
+      <!-- Demo wallet quick-select -->
+      <div class="demo-wallets">
+        <p class="demo-label">選擇測試錢包（或在下方自行填入）</p>
+        <div class="demo-btns">
+          <button type="button" class="demo-btn" onclick="selectDemo(0)">錢包 A</button>
+          <button type="button" class="demo-btn" onclick="selectDemo(1)">錢包 B</button>
+          <button type="button" class="demo-btn" onclick="selectDemo(2)">錢包 C</button>
+          <button type="button" class="demo-btn" onclick="selectDemo(3)">錢包 D</button>
+        </div>
+      </div>
+
       <div class="input-wrap">
         <input
           type="text"
@@ -267,9 +302,9 @@
       </svg>
       <div>
         <div class="fee-body">
-          入場費 <strong>1 IOTA</strong>，分類成功退回 <strong>1.1 IOTA</strong>
+          分類成功獲得 <strong>3 IOTA</strong> 獎勵
         </div>
-        <div class="fee-reward">正確回收淨賺 +0.1 IOTA，交易上鏈可供查驗</div>
+        <div class="fee-reward">AI 判斷可回收且信心度 ≥ 80% 才發放，交易上鏈可供查驗</div>
       </div>
     </div>
 
@@ -281,7 +316,7 @@
         <line x1="5" y1="12" x2="19" y2="12"/>
         <polyline points="12 5 19 12 12 19"/>
       </svg>
-      確認付款
+      確認投遞
     </button>
 
     <!-- Status -->

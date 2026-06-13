@@ -16,6 +16,16 @@ def _get_table():
     return _table
 
 
+_profiles_table = None
+
+
+def _get_profiles_table():
+    global _profiles_table
+    if _profiles_table is None:
+        _profiles_table = boto3.resource("dynamodb").Table(os.environ["PROFILES_TABLE"])
+    return _profiles_table
+
+
 def create_session(
     session_id: str,
     machine_id: str,
@@ -49,6 +59,43 @@ def get_paid_session(machine_id: str) -> dict | None:
     )
     items = resp.get("Items", [])
     return items[0] if items else None
+
+
+
+def count_today(line_user_id: str) -> int:
+    """Return the number of sessions created today (UTC) for this LINE user."""
+    import datetime
+    today_start = int(
+        datetime.datetime.now(datetime.timezone.utc)
+        .replace(hour=0, minute=0, second=0, microsecond=0)
+        .timestamp()
+    )
+    resp = _get_table().query(
+        IndexName="user_line_id-created_at-index",
+        KeyConditionExpression=(
+            Key("user_line_id").eq(line_user_id)
+            & Key("created_at").gte(today_start)
+        ),
+        Select="COUNT",
+    )
+    return resp["Count"]
+
+
+
+def get_wallet(line_user_id: str) -> str | None:
+    """Return the stored wallet address for a LINE user, or None."""
+    resp = _get_profiles_table().get_item(Key={"line_user_id": line_user_id})
+    item = resp.get("Item")
+    return item["wallet_address"] if item else None
+
+
+def save_wallet(line_user_id: str, wallet_address: str) -> None:
+    """Upsert the wallet address for a LINE user."""
+    _get_profiles_table().put_item(Item={
+        "line_user_id":    line_user_id,
+        "wallet_address":  wallet_address,
+        "updated_at":      int(time.time()),
+    })
 
 
 def get_session(session_id: str) -> dict | None:

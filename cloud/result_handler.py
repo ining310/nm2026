@@ -55,7 +55,7 @@ def handler(event, context):
                 f"♻️ 分類成功！\n"
                 f"類別：{cat_zh}\n"
                 f"信心度：{confidence:.0%}\n\n"
-                f"🎉 已發放 1.1 IOTA 獎勵至您的錢包。\n\n"
+                f"🎉 已發放 3 IOTA 獎勵至您的錢包。\n\n"
                 f"🔗 鏈上驗證（可截圖給助教）：\n{explorer_url}"
             ))
         except Exception as exc:
@@ -84,7 +84,12 @@ def handler(event, context):
 
     # ── persist result ────────────────────────────────────────────────────────
     db.update_result(session_id, body, tx_digest, explorer_url)
-    return _resp(200, {"ok": True})
+    return _resp(200, {
+        "ok":               True,
+        "rewarded":         reward_eligible and tx_digest is not None,
+        "iota_tx_digest":   tx_digest,
+        "iota_explorer_url": explorer_url,
+    })
 
 
 def _resp(status: int, body: dict) -> dict:
