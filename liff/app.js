@@ -146,12 +146,13 @@ function renderSessions(sessions) {
     return;
   }
 
-  el.innerHTML = sessions.map((s) => sessionRowHTML(s)).join("");
+  el.innerHTML = sessions.map((s, i) => sessionRowHTML(s, i)).join("");
 }
 
 // ── History: single row ───────────────────────────────────────────────────────
-function sessionRowHTML(s) {
+function sessionRowHTML(s, index = 0) {
   const isPending  = s.status === "paid";
+  const isStale    = isPending && index > 0;  // paid but superseded by newer session
   const isRewarded = s.rewarded;
 
   // Icon
@@ -178,7 +179,8 @@ function sessionRowHTML(s) {
   }
 
   // Title
-  const title = isPending ? "等待偵測中"
+  const title = isStale   ? "未完成投遞"
+    : isPending            ? "等待偵測中"
     : (s.category_zh || s.predicted_category || "無法辨識");
 
   // "我" chip
