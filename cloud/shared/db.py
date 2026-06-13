@@ -99,6 +99,43 @@ def save_wallet(line_user_id: str, wallet_address: str) -> None:
     })
 
 
+def get_history_by_wallet(wallet_address: str, line_user_id: str) -> list:
+    """Return all sessions for a wallet address, newest first."""
+    CATEGORY_ZH = {
+        "metal_can": "金屬罐", "plastic_bottle": "塑膠瓶",
+        "paper": "紙類", "glass": "玻璃",
+        "general_waste": "一般垃圾", "unknown": "無法辨識",
+        "multiple_categories": "多種類別混合",
+    }
+    resp = _get_table().query(
+        IndexName="user_wallet_address-created_at-index",
+        KeyConditionExpression=Key("user_wallet_address").eq(wallet_address),
+        ScanIndexForward=False,
+    )
+    items = []
+    for s in resp.get("Items", []):
+        result = {}
+        if s.get("classification_result"):
+            try:
+                result = json.loads(s["classification_result"])
+            except Exception:
+                pass
+        rewarded = s.get("iota_tx_digest", "N/A") not in ("N/A", None, "")
+        items.append({
+            "session_id":       s["session_id"],
+            "created_at":       int(s.get("created_at", 0)),
+            "status":           s.get("status", "paid"),
+            "predicted_category": result.get("predicted_category", ""),
+            "category_zh":      CATEGORY_ZH.get(result.get("predicted_category", ""), ""),
+            "confidence":       float(result.get("confidence", 0)),
+            "rewarded":         rewarded,
+            "iota_amount":      3.0 if rewarded else 0,
+            "iota_explorer_url": s.get("iota_explorer_url", ""),
+            "is_mine":          s.get("user_line_id", "") == line_user_id,
+        })
+    return items
+
+
 def get_session(session_id: str) -> dict | None:
     """Fetch a session by primary key."""
     resp = _get_table().get_item(Key={"session_id": session_id})

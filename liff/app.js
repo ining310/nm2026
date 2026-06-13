@@ -59,6 +59,172 @@ liff.init({ liffId: LIFF_ID })
     btn.disabled = true;
   });
 
+// ── Tab switching ─────────────────────────────────────────────────────────────
+function switchTab(name) {
+  document.getElementById("tab-pay").style.display     = (name === "pay")     ? "" : "none";
+  document.getElementById("tab-history").style.display = (name === "history") ? "" : "none";
+
+  document.getElementById("tab-btn-pay").classList.toggle("active",     name === "pay");
+  document.getElementById("tab-btn-history").classList.toggle("active", name === "history");
+
+  if (name === "history") loadHistory();
+}
+
+// ── History: load ─────────────────────────────────────────────────────────────
+async function loadHistory() {
+  const walletAddr = document.getElementById("wallet").value.trim();
+  if (!walletAddr) {
+    document.getElementById("balance-amount").textContent = "—";
+    document.getElementById("balance-address").textContent = "";
+    document.getElementById("sessions-list").innerHTML =
+      '<p class="empty-msg">請先在「投遞」頁面填入錢包地址</p>';
+    return;
+  }
+
+  document.getElementById("balance-amount").textContent = "…";
+  document.getElementById("balance-address").textContent = "";
+  document.getElementById("sessions-list").innerHTML = '<p class="empty-msg">載入中…</p>';
+
+  const uid = lineUserId || "";
+  const [histData, balData] = await Promise.all([
+    fetch(`${API_BASE}/history?wallet_address=${encodeURIComponent(walletAddr)}&line_user_id=${encodeURIComponent(uid)}`)
+      .then((r) => r.json()).catch(() => null),
+    fetch(`${API_BASE}/balance?wallet_address=${encodeURIComponent(walletAddr)}`)
+      .then((r) => r.json()).catch(() => null),
+  ]);
+
+  renderBalance(balData, walletAddr);
+  renderSessions(histData ? (histData.sessions || []) : null);
+}
+
+// ── History: render balance ───────────────────────────────────────────────────
+function renderBalance(data, walletAddr) {
+  const amountEl  = document.getElementById("balance-amount");
+  const addressEl = document.getElementById("balance-address");
+
+  if (data && data.ok) {
+    amountEl.textContent = data.balance_iota.toFixed(1);
+  } else {
+    amountEl.textContent = "—";
+  }
+
+  // Truncate: first 6 + … + last 4
+  const short = walletAddr.length > 12
+    ? `${walletAddr.slice(0, 8)}…${walletAddr.slice(-4)}`
+    : walletAddr;
+  addressEl.textContent = short;
+}
+
+// ── History: render session list ──────────────────────────────────────────────
+function renderSessions(sessions) {
+  const el = document.getElementById("sessions-list");
+
+  if (sessions === null) {
+    el.innerHTML = '<p class="empty-msg">載入失敗，請稍後再試</p>';
+    return;
+  }
+  if (sessions.length === 0) {
+    el.innerHTML = '<p class="empty-msg">尚無投遞記錄</p>';
+    return;
+  }
+
+  el.innerHTML = sessions.map((s) => sessionRowHTML(s)).join("");
+}
+
+// ── History: single row ───────────────────────────────────────────────────────
+function sessionRowHTML(s) {
+  const isPending  = s.status === "paid";
+  const isRewarded = s.rewarded;
+
+  // Icon
+  let iconColor, iconSVG;
+  if (isPending) {
+    iconColor = "gray";
+    iconSVG = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+      stroke="#8FA3BC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`;
+  } else if (isRewarded) {
+    iconColor = "green";
+    iconSVG = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+      stroke="#15643C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="1 4 1 10 7 10"/>
+      <polyline points="23 20 23 14 17 14"/>
+      <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>`;
+  } else {
+    iconColor = "red";
+    iconSVG = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+      stroke="#B91C1C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"/>
+      <line x1="15" y1="9" x2="9" y2="15"/>
+      <line x1="9" y1="9" x2="15" y2="15"/></svg>`;
+  }
+
+  // Title
+  const title = isPending ? "等待偵測中"
+    : (s.category_zh || s.predicted_category || "無法辨識");
+
+  // "我" chip
+  const mineChip = s.is_mine ? `<span class="chip-mine">我</span>` : "";
+
+  // Meta line
+  let meta = fmtDate(s.created_at);
+  if (!isPending && s.confidence > 0) {
+    meta += `　信心度 ${Math.round(s.confidence * 100)}%`;
+  }
+
+  // Reward line
+  let rewardHTML = "";
+  if (isPending) {
+    rewardHTML = "";
+  } else if (isRewarded) {
+    const linkHTML = s.iota_explorer_url
+      ? `<a class="explorer-link" href="${escHtml(s.iota_explorer_url)}" target="_blank" rel="noopener">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+            <polyline points="15 3 21 3 21 9"/>
+            <line x1="10" y1="14" x2="21" y2="3"/>
+          </svg>
+        </a>` : "";
+    rewardHTML = `<div class="session-reward">
+      <span class="reward-green">+3 IOTA</span>${linkHTML}
+    </div>`;
+  } else {
+    rewardHTML = `<div class="session-reward"><span class="reward-gray">未獲獎勵</span></div>`;
+  }
+
+  return `
+    <div class="session-row">
+      <div class="session-icon ${iconColor}">${iconSVG}</div>
+      <div class="session-body">
+        <div class="session-top">
+          <span class="session-title">${escHtml(title)}${mineChip}</span>
+        </div>
+        <div class="session-meta">${meta}</div>
+        ${rewardHTML}
+      </div>
+    </div>`;
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function fmtDate(ts) {
+  if (!ts) return "";
+  return new Date(ts * 1000).toLocaleString("zh-TW", {
+    timeZone: "Asia/Taipei",
+    month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit",
+    hour12: false,
+  });
+}
+
+function escHtml(str) {
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
 // ── pay ───────────────────────────────────────────────────────────────────────
 async function pay() {
   const walletAddr = document.getElementById("wallet").value.trim();
@@ -72,7 +238,6 @@ async function pay() {
     return;
   }
 
-  // Show spinner in button
   btn.disabled = true;
   btn.innerHTML = `<span class="spin"></span> 處理中…`;
   clearMsg();
@@ -99,7 +264,6 @@ async function pay() {
     }
 
     setMsg(ICON_OK, "已登記！請將垃圾放上偵測平台，再按下機台按鈕。", "success");
-    // Keep button disabled — one session per scan
     btn.innerHTML = `
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -116,13 +280,13 @@ async function pay() {
         <line x1="5" y1="12" x2="19" y2="12"/>
         <polyline points="12 5 19 12 12 19"/>
       </svg>
-      確認付款`;
+      確認投遞`;
   }
 }
 
 function setMsg(iconHtml, text, state) {
   msg.innerHTML = `${iconHtml}<span>${text}</span>`;
-  msg.className = state; // "success" | "error" | ""
+  msg.className = state;
 }
 
 function clearMsg() {

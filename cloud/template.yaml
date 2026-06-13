@@ -30,6 +30,33 @@ Resources:
 
   # ── Lambda functions ────────────────────────────────────────────────────────
 
+  HistoryFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler:     history_handler.handler
+      Description: Return recycling history for a wallet address
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref SessionsTable
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path:   /history
+            Method: get
+
+  BalanceFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler:     balance_handler.handler
+      Description: Return IOTA wallet balance via RPC
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path:   /balance
+            Method: get
+
   WalletFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -103,8 +130,9 @@ Resources:
         - { AttributeName: session_id,   AttributeType: S }
         - { AttributeName: machine_id,   AttributeType: S }
         - { AttributeName: status,       AttributeType: S }
-        - { AttributeName: user_line_id, AttributeType: S }
-        - { AttributeName: created_at,   AttributeType: N }
+        - { AttributeName: user_line_id,        AttributeType: S }
+        - { AttributeName: created_at,          AttributeType: N }
+        - { AttributeName: user_wallet_address, AttributeType: S }
       KeySchema:
         - { AttributeName: session_id, KeyType: HASH }
       GlobalSecondaryIndexes:
@@ -120,6 +148,12 @@ Resources:
             - { AttributeName: created_at,   KeyType: RANGE }
           Projection:
             ProjectionType: KEYS_ONLY
+        - IndexName: user_wallet_address-created_at-index
+          KeySchema:
+            - { AttributeName: user_wallet_address, KeyType: HASH }
+            - { AttributeName: created_at,          KeyType: RANGE }
+          Projection:
+            ProjectionType: ALL
 
   # ── DynamoDB user profiles table ────────────────────────────────────────────
 

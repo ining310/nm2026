@@ -15,11 +15,11 @@
       --border:      #E2E8F0;
       --border-focus:#1E3A5F;
 
-      --text-primary:   #0D1F35;   /* blue-black */
+      --text-primary:   #0D1F35;
       --text-secondary: #4A6082;
       --text-muted:     #8FA3BC;
 
-      --accent:      #1E3A5F;      /* deep navy */
+      --accent:      #1E3A5F;
       --accent-hover:#16304F;
       --accent-light:#EEF3FA;
 
@@ -43,7 +43,7 @@
       display: flex;
       justify-content: center;
       align-items: flex-start;
-      padding: 32px 16px 48px;
+      padding: 32px 16px 84px; /* extra bottom for tab bar */
       color: var(--text-primary);
       -webkit-font-smoothing: antialiased;
     }
@@ -142,19 +142,20 @@
     }
     .demo-btns { display: flex; gap: 6px; flex-wrap: wrap; }
     .demo-btn {
-      width: auto;
-      padding: 5px 12px;
-      background: var(--accent-light);
-      color: var(--accent);
-      border: 1.5px solid #C8D9EE;
-      border-radius: var(--radius-sm);
-      font-size: 0.78rem;
-      font-weight: 600;
+      width: auto !important;
+      padding: 5px 12px !important;
+      background: var(--accent-light) !important;
+      color: var(--accent) !important;
+      border: 1.5px solid #C8D9EE !important;
+      border-radius: var(--radius-sm) !important;
+      font-size: 0.78rem !important;
+      font-weight: 600 !important;
       cursor: pointer;
       transition: background 0.15s, border-color 0.15s;
+      letter-spacing: 0;
     }
-    .demo-btn:not(:disabled):hover { background: #dce8f5 !important; border-color: var(--accent); color: var(--accent); }
-    .demo-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .demo-btn:not(:disabled):hover { background: #dce8f5 !important; border-color: var(--accent) !important; color: var(--accent) !important; }
+    .demo-btn.active { background: var(--accent) !important; color: #fff !important; border-color: var(--accent) !important; }
 
     /* ── Fee row ─────────────────────────────────────────────── */
     .fee-row {
@@ -229,15 +230,187 @@
       animation: spin 0.7s linear infinite;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Bottom tab bar ──────────────────────────────────────── */
+    .tab-bar {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      height: 52px;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      display: flex;
+      z-index: 100;
+    }
+    .tab-btn {
+      flex: 1;
+      width: auto !important;
+      padding: 0 !important;
+      background: none !important;
+      border: none !important;
+      border-radius: 0 !important;
+      font-size: 0.82rem !important;
+      font-weight: 500 !important;
+      color: var(--text-muted) !important;
+      letter-spacing: 0;
+      display: flex !important;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px !important;
+      cursor: pointer;
+      transition: color 0.15s;
+      opacity: 1 !important;
+    }
+    .tab-btn:not(:disabled):hover { background: none !important; color: var(--accent) !important; }
+    .tab-btn.active {
+      color: var(--accent) !important;
+      font-weight: 700 !important;
+    }
+    .tab-btn.active svg { stroke: var(--accent); }
+    .tab-btn:not(.active) svg { stroke: var(--text-muted); }
+
+    /* ── History: balance card ───────────────────────────────── */
+    .balance-card {
+      background: var(--accent-light);
+      border: 1px solid #C8D9EE;
+      border-radius: var(--radius-md);
+      padding: 20px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    .balance-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+    .balance-amount {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: -0.03em;
+      line-height: 1;
+    }
+    .balance-unit {
+      font-size: 1rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      margin-left: 4px;
+    }
+    .balance-address {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      font-family: "SF Mono", "Fira Code", monospace;
+      margin-top: 8px;
+    }
+
+    /* ── History: section title ──────────────────────────────── */
+    .section-title {
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      margin-bottom: 10px;
+    }
+
+    /* ── History: session row ────────────────────────────────── */
+    .session-row {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 11px 13px;
+      margin-bottom: 8px;
+      display: grid;
+      grid-template-columns: 28px 1fr;
+      gap: 10px;
+      align-items: start;
+    }
+    .session-icon {
+      width: 28px; height: 28px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .session-icon.green { background: #EBF5EE; }
+    .session-icon.red   { background: #FEF2F2; }
+    .session-icon.gray  { background: #F1F5F9; }
+    .session-body { min-width: 0; }
+    .session-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      margin-bottom: 3px;
+    }
+    .session-title {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .chip-mine {
+      display: inline-flex;
+      align-items: center;
+      background: var(--accent-light);
+      color: var(--accent);
+      border: 1px solid #C8D9EE;
+      border-radius: 4px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 1px 5px;
+      flex-shrink: 0;
+    }
+    .session-meta {
+      font-size: 0.73rem;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+    .session-reward {
+      font-size: 0.78rem;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .reward-green {
+      color: #15643C;
+      font-weight: 600;
+    }
+    .reward-gray { color: var(--text-muted); }
+    .explorer-link {
+      display: inline-flex;
+      align-items: center;
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+    .explorer-link:hover { color: var(--accent); }
+
+    /* ── History: empty state ────────────────────────────────── */
+    .empty-msg {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      padding: 32px 0;
+    }
   </style>
 </head>
 <body>
-  <div class="card">
 
-    <!-- Header -->
+  <!-- ══ Tab 1: Pay ══════════════════════════════════════════════ -->
+  <div id="tab-pay" class="card">
+
     <div class="header">
       <div class="header-icon">
-        <!-- Recycle icon -->
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
              stroke="#1E3A5F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="1 4 1 10 7 10"/>
@@ -251,10 +424,8 @@
 
     <div class="divider"></div>
 
-    <!-- Wallet input -->
     <div class="field">
       <div class="field-label">
-        <!-- Wallet icon -->
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
              stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M20 12V22H4V12"/>
@@ -266,7 +437,6 @@
         獎勵錢包地址
       </div>
 
-      <!-- Demo wallet quick-select -->
       <div class="demo-wallets">
         <p class="demo-label">選擇測試錢包（或在下方自行填入）</p>
         <div class="demo-btns">
@@ -291,9 +461,7 @@
       <p class="field-hint">IOTA Rebased devnet 地址（0x + 64 位十六進位）</p>
     </div>
 
-    <!-- Fee summary -->
     <div class="fee-row">
-      <!-- Info icon -->
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
            stroke="#1E3A5F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <circle cx="12" cy="12" r="10"/>
@@ -308,9 +476,7 @@
       </div>
     </div>
 
-    <!-- Pay button -->
     <button id="payBtn" onclick="pay()">
-      <!-- Arrow-right icon -->
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
         <line x1="5" y1="12" x2="19" y2="12"/>
@@ -319,10 +485,64 @@
       確認投遞
     </button>
 
-    <!-- Status -->
     <div id="msg" class="hidden"></div>
 
   </div>
+
+  <!-- ══ Tab 2: History ══════════════════════════════════════════ -->
+  <div id="tab-history" class="card" style="display:none">
+
+    <!-- Balance card -->
+    <div class="balance-card">
+      <div class="balance-label">
+        <!-- Wallet icon -->
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
+             stroke="#4A6082" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 12V22H4V12"/>
+          <path d="M22 7H2v5h20V7z"/>
+          <path d="M12 22V7"/>
+          <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/>
+          <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>
+        </svg>
+        錢包餘額
+      </div>
+      <div>
+        <span class="balance-amount" id="balance-amount">—</span>
+        <span class="balance-unit">IOTA</span>
+      </div>
+      <div class="balance-address" id="balance-address"></div>
+    </div>
+
+    <!-- Session list -->
+    <div class="section-title">投遞記錄</div>
+    <div id="sessions-list">
+      <p class="empty-msg">載入中…</p>
+    </div>
+
+  </div>
+
+  <!-- ══ Bottom tab bar ══════════════════════════════════════════ -->
+  <nav class="tab-bar">
+    <button class="tab-btn active" id="tab-btn-pay" onclick="switchTab('pay')">
+      <!-- Recycle icon -->
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+           stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="1 4 1 10 7 10"/>
+        <polyline points="23 20 23 14 17 14"/>
+        <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/>
+      </svg>
+      投遞
+    </button>
+    <button class="tab-btn" id="tab-btn-history" onclick="switchTab('history')">
+      <!-- Clock icon -->
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+           stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/>
+        <polyline points="12 6 12 12 16 14"/>
+      </svg>
+      記錄
+    </button>
+  </nav>
 
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <script src="app.js"></script>
