@@ -49,16 +49,17 @@ def create_session(
 
 
 def get_paid_session(machine_id: str) -> dict | None:
-    """Return the current 'paid' session for a machine, or None."""
+    """Return the most recently created 'paid' session for a machine, or None."""
     resp = _get_table().query(
         IndexName="machine_id-status-index",
         KeyConditionExpression=(
             Key("machine_id").eq(machine_id) & Key("status").eq("paid")
         ),
-        Limit=1,
     )
     items = resp.get("Items", [])
-    return items[0] if items else None
+    if not items:
+        return None
+    return max(items, key=lambda s: int(s.get("created_at", 0)))
 
 
 
