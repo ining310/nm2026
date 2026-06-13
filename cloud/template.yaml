@@ -10,6 +10,7 @@ Globals:
     Environment:
       Variables:
         DYNAMODB_TABLE:              !Ref SessionsTable
+        PROFILES_TABLE:              !Ref ProfilesTable
         IOTA_NETWORK:                devnet
         IOTA_RPC_URL:                https://indexer.devnet.iota.cafe
         IOTA_FAUCET_URL:             https://faucet.devnet.iota.cafe/gas
@@ -29,6 +30,21 @@ Resources:
 
   # ── Lambda functions ────────────────────────────────────────────────────────
 
+  WalletFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler:     wallet_handler.handler
+      Description: Get stored wallet address for a LINE user
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref ProfilesTable
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path:   /wallet
+            Method: get
+
   PayFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -37,6 +53,8 @@ Resources:
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref SessionsTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ProfilesTable
       Events:
         Api:
           Type: Api
@@ -102,6 +120,18 @@ Resources:
             - { AttributeName: created_at,   KeyType: RANGE }
           Projection:
             ProjectionType: KEYS_ONLY
+
+  # ── DynamoDB user profiles table ────────────────────────────────────────────
+
+  ProfilesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName:   recycling-user-profiles
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - { AttributeName: line_user_id, AttributeType: S }
+      KeySchema:
+        - { AttributeName: line_user_id, KeyType: HASH }
 
 Outputs:
   ApiUrl:

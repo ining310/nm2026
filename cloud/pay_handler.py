@@ -35,6 +35,13 @@ def handler(event, context):
         print(f"[ERROR] /pay db.create_session: {exc}")
         return _resp(409, {"ok": False, "error": "Session already exists"})
 
+
+    # ── bind wallet address to LINE user ─────────────────────────────────────
+    try:
+        db.save_wallet(line_user_id, wallet_address)
+    except Exception as exc:
+        print(f"[WARN] /pay db.save_wallet: {exc}")
+
     # ── notify user ───────────────────────────────────────────────────────────
     try:
         line_bot.push(
