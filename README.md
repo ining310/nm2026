@@ -1,12 +1,12 @@
 # AI Smart Recycling Bin with IOTA Wallet Reward System
-Updated: 2026/6/12
+Updated: 2026/6/13
 ## 1. Project Overview
 
 This project proposes an **AI-powered smart recycling bin** that automatically classifies waste and physically sorts it into the correct recycling bin. The system combines **Raspberry Pi, computer vision, motor control, IOTA wallet transactions, QR-code-based user interaction, and LINE chatbot integration**.
 
-The user first uses the camera on their phone to scan a QR code on the recycling machine. After scanning the QR code, the user is directed to the LINE chatbot or payment page, where they are asked to pay a small entry fee through an IOTA wallet.
+The user first uses the camera on their phone to scan a QR code on the recycling machine. After scanning the QR code, the user is directed to a LIFF page where they enter their IOTA wallet address to register a recycling session. There is no entry fee.
 
-After payment is confirmed, the user **places the garbage directly onto the detection platform** (there is no entry gate). Once the garbage is placed, the user **manually presses the physical button on the machine** to trigger the detection process.
+After registration, the user **places the garbage directly onto the detection platform** (there is no entry gate). Once the garbage is placed, the user **manually presses the physical button on the machine** to trigger the detection process.
 
 The Raspberry Pi camera then captures the image of the garbage. A two-stage AI pipeline runs:
 1. **Hailo AI Hat** (YOLOv8) performs real-time object detection to identify what is in the frame.
@@ -48,7 +48,7 @@ The system aims to:
 - Allow users to start the recycling process by scanning a QR code on the machine with their phone camera.
 - Automatically identify garbage category using a Raspberry Pi camera and AI model triggered by a physical button press.
 - Physically sort garbage into the correct bin using a two-motor control mechanism.
-- Use an IOTA wallet mechanism to collect an entry fee and return rewards.
+- Use an IOTA wallet mechanism to send rewards for correctly recycled items.
 - Provide user interaction through a LINE chatbot.
 - Demonstrate the integration of AI, IoT, blockchain, QR-code interaction, and chatbot technology.
 - Encourage correct recycling behavior through financial incentives.
@@ -62,11 +62,11 @@ The system aims to:
 ```text
 User scans QR code on the recycling machine using phone camera
         ↓
-User is directed to LINE chatbot or LIFF payment page
+User is directed to LIFF page
         ↓
-User pays 1 dollar through IOTA wallet
+User enters their IOTA wallet address and clicks "確認投遞"
         ↓
-Payment confirmed (Lambda updates DynamoDB status to "paid")
+Session registered (Lambda writes DynamoDB status to "paid")
         ↓
 User places garbage directly onto the detection platform
         ↓
@@ -113,41 +113,20 @@ This QR code helps the system identify which recycling machine the user is inter
 
 ---
 
-### Step 2: User Starts a Recycling Session
+### Step 2: User Registers a Recycling Session
 
-After scanning the QR code, the user enters the LINE chatbot or web-based payment interface.
+After scanning the QR code, the user is directed to the LIFF page. The user enters their IOTA wallet address and clicks "確認投遞". There is no entry fee.
 
-Example:
+The Lambda `/pay` endpoint writes a session record to DynamoDB (status: `paid`) and notifies the user via LINE:
 
 ```text
-User: I want to recycle.
-Bot: Please pay 1 dollar to start the recycling session.
+Bot: ✅ 登記成功！請將垃圾放上偵測平台，再按下機台上的按鈕開始偵測。
+     AI 判斷可回收即可獲得 3 IOTA 獎勵。
 ```
 
 ---
 
-### Step 3: User Pays Entry Fee
-
-The user pays a fixed entry fee through the IOTA wallet.
-
-Example:
-
-```text
-Entry fee: 1 dollar
-```
-
-After the payment is confirmed, the Lambda backend updates DynamoDB and notifies the user to proceed.
-
-Example LINE message:
-
-```text
-Bot: Payment confirmed. Please place your garbage onto the detection platform,
-then press the button on the machine to start detection.
-```
-
----
-
-### Step 4: User Places Garbage and Presses Button
+### Step 3: User Places Garbage and Presses Button
 
 There is no entry gate. The user places the garbage **directly onto the open detection platform**.
 
@@ -161,7 +140,7 @@ User places garbage on platform → User presses button → GPIO interrupt fires
 
 ---
 
-### Step 5: Camera Captures Garbage Image
+### Step 4: Camera Captures Garbage Image
 
 The Raspberry Pi camera captures an image of the garbage on the platform.
 
@@ -189,7 +168,7 @@ Example output:
 
 ---
 
-### Step 6: Turntable Servo Rotates to Target Bin
+### Step 5: Turntable Servo Rotates to Target Bin
 
 The turntable servo rotates the platform to align with the correct bin. The idle position is 90° (centre). Categories map to angles as follows:
 
@@ -208,7 +187,7 @@ predicted_category = "metal_can"  →  Category.METAL  →  turntable rotates to
 
 ---
 
-### Step 7: Gate Servos Open and Drop the Garbage
+### Step 6: Gate Servos Open and Drop the Garbage
 
 After the turntable reaches the correct position, gate servo A and gate servo B rotate simultaneously to open the floor, dropping the garbage into the bin below.
 
@@ -221,7 +200,7 @@ The garbage falls into the selected bin. After a short wait, both gates close ba
 
 ---
 
-### Step 8: Turntable Returns to Idle Position
+### Step 7: Turntable Returns to Idle Position
 
 After the gates close, the turntable servo rotates back to the centre idle position.
 
@@ -231,7 +210,7 @@ Turntable: returns to 90° (idle)
 
 ---
 
-### Step 9: Raspberry Pi Calls Lambda Once
+### Step 8: Raspberry Pi Calls Lambda Once
 
 After the motors finish, the Raspberry Pi sends **one POST request** to the Lambda `/result` endpoint with the classification result.
 
@@ -259,44 +238,24 @@ There is no polling. The RPi fires once and moves on to reset.
 
 ## 6. IOTA Wallet and Reward Mechanism
 
-The system uses IOTA wallet transactions to create a deposit-and-reward recycling mechanism.
+The system uses IOTA wallet transactions to reward users for correctly recycling. There is no entry fee — only a reward.
 
-### 6.1 Entry Fee
-
-Before throwing garbage, each user must pay:
-
-```text
-1 dollar
-```
-
-This payment acts as an entry fee or deposit.
-
----
-
-### 6.2 Reward Rule
+### 6.1 Reward Rule
 
 After AI classification, Lambda determines whether the user should receive a reward.
 
-There are two main cases.
+There are two cases.
 
 ---
 
 ### Case 1: Clear Recyclable Item
 
-If the garbage is classified as recyclable and belongs to only one category, Lambda sends money back to the user's IOTA wallet.
-
-Example:
-
-```text
-User pays: 1.0 dollar
-User receives: 1.1 dollars
-Net reward: +0.1 dollar
-```
+If the garbage is classified as recyclable and belongs to only one category with confidence ≥ 80%, Lambda sends 3 IOTA to the user's wallet address.
 
 Reward condition:
 
 ```text
-classification_confidence >= threshold
+classification_confidence >= 0.80
 AND recyclable = true
 AND single_category = true
 ```
@@ -309,7 +268,7 @@ Example result:
   "target_bin": "Bin A",
   "confidence": 0.92,
   "reward_status": "rewarded",
-  "amount_returned": 1.1
+  "amount_sent": 1.1
 }
 ```
 
@@ -317,20 +276,12 @@ Example result:
 
 ### Case 2: Unclear, Mixed, or Non-Recyclable Item
 
-If the garbage cannot be classified clearly, is mixed, or is not recyclable, Lambda does not send money back and notifies the user of the issue.
-
-Example:
-
-```text
-User pays: 1.0 dollar
-User receives: 0 dollar
-Net result: -1.0 dollar
-```
+If the garbage cannot be classified clearly, is mixed, or is not recyclable, no IOTA is sent. Lambda notifies the user via LINE.
 
 No reward condition:
 
 ```text
-classification_confidence < threshold
+classification_confidence < 0.80
 OR recyclable = false
 OR single_category = false
 ```
@@ -343,7 +294,7 @@ Example result:
   "target_bin": "manual_check",
   "confidence": 0.43,
   "reward_status": "not_rewarded",
-  "amount_returned": 0
+  "amount_sent": 0
 }
 ```
 
@@ -355,13 +306,9 @@ The LINE chatbot is the main user interface after the user scans the QR code on 
 
 Users can use the chatbot to:
 
-- start a recycling session
-- connect or identify their IOTA wallet
-- pay the entry fee
+- receive session registration confirmation
 - receive classification result
-- receive reward status or error notification
-- view wallet transaction history
-- view personal recycling history
+- receive reward status or error notification with explorer URL
 
 The chatbot also connects the user session to the specific recycling machine that was scanned.
 
@@ -372,25 +319,17 @@ The chatbot also connects the user session to the specific recycling machine tha
 ### 8.1 Successful Recycling Case
 
 ```text
-User scans the QR code on the machine.
+[User scans QR code → opens LIFF page → enters wallet address → clicks 確認投遞]
 
-Bot: Welcome to the AI Smart Recycling Bin.
-Please pay 1 dollar to start the recycling session.
-
-User: Paid.
-
-Bot: Payment confirmed.
-Please place your garbage onto the detection platform,
-then press the button on the machine.
+Bot: ✅ 登記成功！
+請將垃圾放上偵測平台，再按下機台上的按鈕開始偵測。
+AI 判斷可回收即可獲得 3 IOTA 獎勵。
 
 [User places garbage and presses button]
 
-Bot: Your item was classified as Metal Can.
-Target bin: Bin A.
-Confidence: 92%.
-Reward status: Success.
-1.1 dollars have been sent back to your wallet.
-Thank you for recycling correctly.
+Bot: ✅ 分類成功！已發送 3 IOTA 獎勵。
+類別：metal_can　信心度：92%
+交易：https://explorer.rebased.iota.org/txblock/...?network=devnet
 ```
 
 ---
@@ -398,23 +337,16 @@ Thank you for recycling correctly.
 ### 8.2 Failed Classification Case
 
 ```text
-User scans the QR code on the machine.
+[User scans QR code → opens LIFF page → enters wallet address → clicks 確認投遞]
 
-Bot: Welcome to the AI Smart Recycling Bin.
-Please pay 1 dollar to start the recycling session.
-
-User: Paid.
-
-Bot: Payment confirmed.
-Please place your garbage onto the detection platform,
-then press the button on the machine.
+Bot: ✅ 登記成功！
+請將垃圾放上偵測平台，再按下機台上的按鈕開始偵測。
+AI 判斷可回收即可獲得 3 IOTA 獎勵。
 
 [User places garbage and presses button]
 
-Bot: The item could not be clearly classified.
-Classification result: Unknown or mixed waste.
-Reward status: No reward returned.
-Please check the recycling rules before trying again.
+Bot: ❌ 無法明確分類，未發送獎勵。
+類別：unknown　信心度：43%
 ```
 
 ---
@@ -537,9 +469,9 @@ A simple demo flow can be:
 
 ```text
 1. User opens the phone camera and scans the QR code on the recycling machine.
-2. The QR code opens the LINE chatbot or LIFF page.
-3. User pays 1 dollar.
-4. The system confirms payment and sends a LINE message asking the user to place the garbage and press the button.
+2. The QR code opens the LIFF page.
+3. User enters their IOTA wallet address and clicks 確認投遞.
+4. Lambda registers the session and sends a LINE message asking the user to place the garbage and press the button.
 5. User places a metal can directly onto the detection platform.
 6. User presses the physical button on the machine.
 7. Camera captures the image.
@@ -549,6 +481,6 @@ A simple demo flow can be:
 11. Gate servo A + B open → can drops into METAL bin → gates close.
 12. Turntable returns to idle (90°).
 13. Raspberry Pi calls Lambda /result once.
-14. Lambda sends 1.1 IOTA back to the user's wallet.
+14. Lambda sends 3 IOTA to the user's wallet address.
 15. LINE chatbot displays the reward result with explorer URL.
 ```
