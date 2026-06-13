@@ -302,15 +302,17 @@ async function pay() {
         <div class="next-step-body">
           <div class="next-step-done">登記成功</div>
           <div class="next-step-action">
-            放上物品後，按下
             <span class="press-icon">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none"
                    stroke="#1A5C42" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="5" y="2" width="14" height="20" rx="3"/>
-                <line x1="12" y1="6" x2="12" y2="10"/>
+                <path d="M9 11V6a2 2 0 0 1 2-2 2 2 0 0 1 2 2v5"/>
+                <path d="M13 10.5V8a2 2 0 0 1 2-2 2 2 0 0 1 2 2v3.5"/>
+                <path d="M7 12V9a2 2 0 0 1 2-2"/>
+                <path d="M7 15v-3"/>
+                <path d="M7 15a5 5 0 0 0 5 5h2a5 5 0 0 0 5-5v-3.5H7V15z"/>
               </svg>
             </span>
-            機台上的按鈕
+            <span>放上物品後，按下機台上的按鈕</span>
           </div>
         </div>
       </div>`;

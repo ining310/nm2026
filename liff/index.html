@@ -177,14 +177,13 @@
     .next-step-done { font-weight: 600; color: var(--success-text); margin-bottom: 4px; }
     .next-step-action {
       color: #1A5C42;
-      display: flex; align-items: center; gap: 6px; font-size: 0.82rem;
+      display: flex; align-items: center; gap: 8px; font-size: 0.82rem;
     }
-    .next-step-action svg { flex-shrink: 0; }
+    .press-icon { flex-shrink: 0; animation: press-pulse 1.6s ease-in-out infinite; display: flex; }
     @keyframes press-pulse {
-      0%, 100% { transform: scale(1);   opacity: 1; }
-      50%       { transform: scale(0.88); opacity: 0.7; }
+      0%, 100% { transform: translateY(0);  opacity: 1; }
+      50%       { transform: translateY(2px); opacity: 0.7; }
     }
-    .press-icon { animation: press-pulse 1.6s ease-in-out infinite; display: inline-flex; }
 
     /* ── Spinner ─────────────────────────────────────────────────── */
     .spin {
@@ -497,6 +496,6 @@
   </nav>
 
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-  <script src="app.js?v=7"></script>
+  <script src="app.js?v=8"></script>
 </body>
 </html>
