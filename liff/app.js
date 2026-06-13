@@ -75,14 +75,14 @@ async function loadHistory() {
   const walletAddr = document.getElementById("wallet").value.trim();
   if (!walletAddr) {
     document.getElementById("balance-amount").textContent = "—";
-    document.getElementById("balance-address").textContent = "";
+    document.getElementById("balance-address-text").textContent = "";
     document.getElementById("sessions-list").innerHTML =
       '<p class="empty-msg">請先在「投遞」頁面填入錢包地址</p>';
     return;
   }
 
   document.getElementById("balance-amount").textContent = "…";
-  document.getElementById("balance-address").textContent = "";
+  document.getElementById("balance-address-text").textContent = "";
   document.getElementById("sessions-list").innerHTML = '<p class="empty-msg">載入中…</p>';
 
   const uid = lineUserId || "";
@@ -99,25 +99,18 @@ async function loadHistory() {
 
 // ── History: render balance ───────────────────────────────────────────────────
 function renderBalance(data, walletAddr) {
-  const amountEl  = document.getElementById("balance-amount");
-  const addrText  = document.getElementById("balance-address-text");
-  const linkEl    = document.getElementById("balance-link");
+  const amountEl = document.getElementById("balance-amount");
+  const addrText = document.getElementById("balance-address-text");
+  const linkEl   = document.getElementById("balance-link");
 
-  if (data && data.ok) {
-    amountEl.textContent = data.balance_iota.toFixed(1);
-  } else {
-    amountEl.textContent = "—";
-  }
+  amountEl.textContent = (data && data.ok) ? data.balance_iota.toFixed(1) : "—";
 
-  // Truncate: first 8 + … + last 4
   const short = walletAddr.length > 12
     ? `${walletAddr.slice(0, 8)}…${walletAddr.slice(-4)}`
     : walletAddr;
   addrText.textContent = short;
 
-  // Link to explorer
-  const explorerUrl = `https://explorer.rebased.iota.org/address/${walletAddr}?network=devnet`;
-  linkEl.href = explorerUrl;
+  linkEl.href = `https://explorer.iota.org/address/${walletAddr}?network=devnet`;
 }
 
 // ── History: render session list ──────────────────────────────────────────────

@@ -40,7 +40,6 @@
       padding-bottom: calc(68px + env(safe-area-inset-bottom));
     }
 
-    /* ── Page sections (no card box) ───────────────────────────── */
     .page {
       padding: 28px 20px 8px;
       max-width: 480px;
@@ -49,123 +48,76 @@
 
     /* ── Header ──────────────────────────────────────────────────── */
     .header {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 4px;
+      display: flex; align-items: center; gap: 10px; margin-bottom: 4px;
     }
     .header-icon {
-      width: 32px; height: 32px;
-      background: var(--accent-light);
-      border-radius: 8px;
-      display: flex; align-items: center; justify-content: center;
+      width: 32px; height: 32px; background: var(--accent-light);
+      border-radius: 8px; display: flex; align-items: center; justify-content: center;
       flex-shrink: 0;
     }
     h1 { font-size: 1.05rem; font-weight: 700; letter-spacing: -0.02em; }
     .subtitle {
-      font-size: 0.82rem;
-      color: var(--text-secondary);
-      margin-bottom: 24px;
-      line-height: 1.5;
+      font-size: 0.82rem; color: var(--text-secondary);
+      margin-bottom: 24px; line-height: 1.5;
     }
 
-    /* ── Steps (pay tab) ─────────────────────────────────────────── */
+    /* ── Steps card ──────────────────────────────────────────────── */
     .steps {
-      display: flex;
-      flex-direction: column;
-      gap: 0;
-      margin-bottom: 24px;
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius-md);
       overflow: hidden;
+      margin-bottom: 20px;
     }
     .step {
-      display: flex;
-      align-items: flex-start;
-      gap: 12px;
-      padding: 13px 16px;
+      display: flex; align-items: flex-start; gap: 12px; padding: 14px 16px;
     }
     .step + .step { border-top: 1px solid var(--border); }
     .step-num {
-      width: 22px; height: 22px;
-      background: var(--accent);
-      color: #fff;
-      border-radius: 50%;
-      font-size: 0.72rem;
-      font-weight: 700;
+      width: 22px; height: 22px; background: var(--accent); color: #fff;
+      border-radius: 50%; font-size: 0.72rem; font-weight: 700;
       display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
-      margin-top: 1px;
+      flex-shrink: 0; margin-top: 1px;
     }
-    .step-body { font-size: 0.83rem; line-height: 1.5; }
-    .step-title { font-weight: 600; color: var(--text-primary); }
-    .step-desc  { color: var(--text-secondary); font-size: 0.78rem; margin-top: 1px; }
+    .step-body { flex: 1; min-width: 0; }
+    .step-title { font-size: 0.85rem; font-weight: 600; color: var(--text-primary); }
+    .step-desc  { font-size: 0.78rem; color: var(--text-secondary); margin-top: 2px; line-height: 1.5; }
 
-    /* ── Divider ─────────────────────────────────────────────────── */
-    .section-label {
-      font-size: 0.72rem;
-      font-weight: 600;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      color: var(--text-muted);
-      margin-bottom: 8px;
-    }
+    /* Step 1 expanded: wallet input inside */
+    .step-expanded { flex-direction: column; gap: 10px; }
+    .step-expanded .step-head { display: flex; align-items: center; gap: 12px; }
 
     /* ── Demo wallets ───────────────────────────────────────────── */
-    .demo-wallets { margin-bottom: 10px; }
-    .demo-label {
-      font-size: 0.72rem;
-      color: var(--text-muted);
-      margin-bottom: 6px;
-    }
-    .demo-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+    .demo-label { font-size: 0.72rem; color: var(--text-muted); margin-bottom: 6px; }
+    .demo-btns  { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
     .demo-btn {
-      width: auto !important;
-      padding: 5px 12px !important;
-      background: var(--accent-light) !important;
-      color: var(--accent) !important;
-      border: 1.5px solid #C8D9EE !important;
-      border-radius: var(--radius-sm) !important;
-      font-size: 0.78rem !important;
-      font-weight: 600 !important;
-      letter-spacing: 0;
-      cursor: pointer;
-      transition: background 0.15s;
+      width: auto !important; padding: 5px 12px !important;
+      background: var(--accent-light) !important; color: var(--accent) !important;
+      border: 1.5px solid #C8D9EE !important; border-radius: var(--radius-sm) !important;
+      font-size: 0.78rem !important; font-weight: 600 !important;
+      letter-spacing: 0; cursor: pointer; transition: background 0.15s;
     }
     .demo-btn:not(:disabled):hover { background: #dce8f5 !important; border-color: var(--accent) !important; }
     .demo-btn.active { background: var(--accent) !important; color: #fff !important; border-color: var(--accent) !important; }
 
     /* ── Wallet input ────────────────────────────────────────────── */
-    .wallet-field { margin-bottom: 20px; }
     input[type="text"] {
-      width: 100%;
-      padding: 11px 14px;
-      border: 1.5px solid var(--border);
-      border-radius: var(--radius-sm);
-      font-size: 0.88rem;
-      font-family: "SF Mono", "Fira Code", monospace;
-      color: var(--text-primary);
-      background: var(--surface);
-      outline: none;
+      width: 100%; padding: 10px 13px;
+      border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+      font-size: 0.85rem; font-family: "SF Mono", "Fira Code", monospace;
+      color: var(--text-primary); background: var(--surface); outline: none;
       transition: border-color 0.15s;
     }
     input[type="text"]::placeholder { color: var(--text-muted); font-family: inherit; }
     input[type="text"]:focus { border-color: var(--border-focus); }
-    .field-hint { font-size: 0.73rem; color: var(--text-muted); margin-top: 5px; }
+    .field-hint { font-size: 0.72rem; color: var(--text-muted); margin-top: 4px; }
 
     /* ── Button ──────────────────────────────────────────────────── */
     button {
-      width: 100%;
-      padding: 13px 20px;
-      background: var(--accent);
-      color: #fff;
-      border: none;
-      border-radius: var(--radius-md);
-      font-size: 0.92rem;
-      font-weight: 600;
-      cursor: pointer;
-      display: flex; align-items: center; justify-content: center; gap: 8px;
+      width: 100%; padding: 13px 20px;
+      background: var(--accent); color: #fff; border: none;
+      border-radius: var(--radius-md); font-size: 0.92rem; font-weight: 600;
+      cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
       transition: background 0.15s, opacity 0.15s;
     }
     button:not(:disabled):hover { background: var(--accent-hover); }
@@ -173,20 +125,14 @@
 
     /* ── Status message ──────────────────────────────────────────── */
     #msg {
-      margin-top: 14px;
-      font-size: 0.82rem;
-      line-height: 1.5;
-      display: flex; align-items: flex-start; gap: 7px;
-      color: var(--text-secondary);
+      margin-top: 14px; font-size: 0.82rem; line-height: 1.5;
+      display: flex; align-items: flex-start; gap: 7px; color: var(--text-secondary);
     }
     #msg svg { flex-shrink: 0; margin-top: 1px; }
-    #msg.error   { color: var(--error-text); }
+    #msg.error { color: var(--error-text); }
     #msg.success {
-      background: var(--success-bg);
-      border: 1px solid var(--success-border);
-      color: var(--success-text);
-      border-radius: var(--radius-sm);
-      padding: 10px 12px;
+      background: var(--success-bg); border: 1px solid var(--success-border);
+      color: var(--success-text); border-radius: var(--radius-sm); padding: 10px 12px;
     }
     #msg.hidden { display: none; }
 
@@ -194,27 +140,21 @@
     .spin {
       display: inline-block; width: 16px; height: 16px;
       border: 2px solid rgba(255,255,255,0.35); border-top-color: #fff;
-      border-radius: 50%;
-      animation: spin 0.7s linear infinite;
+      border-radius: 50%; animation: spin 0.7s linear infinite;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
     /* ── Bottom tab bar ──────────────────────────────────────────── */
     .tab-bar {
       position: fixed; bottom: 0; left: 0; right: 0;
-      background: var(--surface);
-      border-top: 1px solid var(--border);
-      display: flex;
-      padding-bottom: env(safe-area-inset-bottom);
-      z-index: 100;
+      background: var(--surface); border-top: 1px solid var(--border);
+      display: flex; padding-bottom: env(safe-area-inset-bottom); z-index: 100;
     }
     .tab-btn {
-      flex: 1;
-      width: auto !important; padding: 10px 0 10px !important;
+      flex: 1; width: auto !important; padding: 10px 0 !important;
       background: none !important; border: none !important; border-radius: 0 !important;
       font-size: 0.76rem !important; font-weight: 500 !important;
-      color: var(--text-muted) !important;
-      letter-spacing: 0;
+      color: var(--text-muted) !important; letter-spacing: 0;
       display: flex !important; flex-direction: column;
       align-items: center; justify-content: center; gap: 4px !important;
       cursor: pointer; transition: color 0.15s; opacity: 1 !important;
@@ -226,46 +166,46 @@
 
     /* ── History: balance card ───────────────────────────────────── */
     .balance-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-md);
-      padding: 18px 20px;
-      margin-bottom: 24px;
-      text-align: center;
-      text-decoration: none;
-      display: block;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-md); padding: 16px 20px;
+      margin-bottom: 20px; display: block; text-decoration: none;
       transition: border-color 0.15s;
     }
     .balance-card:hover { border-color: var(--accent); }
+    .balance-top {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 4px;
+    }
     .balance-label {
       font-size: 0.72rem; font-weight: 600; letter-spacing: 0.05em;
       text-transform: uppercase; color: var(--text-secondary);
-      display: flex; align-items: center; justify-content: center; gap: 5px;
-      margin-bottom: 8px;
+      display: flex; align-items: center; gap: 5px;
+    }
+    .balance-explorer-hint {
+      font-size: 0.72rem; color: var(--text-muted);
+      display: flex; align-items: center; gap: 3px;
     }
     .balance-amount {
-      font-size: 2rem; font-weight: 700; color: var(--accent);
+      font-size: 1.9rem; font-weight: 700; color: var(--accent);
       letter-spacing: -0.03em; line-height: 1;
     }
-    .balance-unit { font-size: 1rem; font-weight: 500; color: var(--text-secondary); margin-left: 3px; }
+    .balance-unit { font-size: 0.95rem; font-weight: 500; color: var(--text-secondary); margin-left: 3px; }
     .balance-address {
       font-size: 0.7rem; color: var(--text-muted);
-      font-family: "SF Mono", "Fira Code", monospace; margin-top: 8px;
-      display: flex; align-items: center; justify-content: center; gap: 4px;
+      font-family: "SF Mono", "Fira Code", monospace; margin-top: 6px;
     }
-    .balance-address svg { flex-shrink: 0; }
+
+    /* ── Section label ───────────────────────────────────────────── */
+    .section-label {
+      font-size: 0.72rem; font-weight: 600; letter-spacing: 0.05em;
+      text-transform: uppercase; color: var(--text-muted); margin-bottom: 10px;
+    }
 
     /* ── History: session row ────────────────────────────────────── */
     .session-row {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      padding: 11px 13px;
-      margin-bottom: 8px;
-      display: grid;
-      grid-template-columns: 28px 1fr;
-      gap: 10px;
-      align-items: start;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 11px 13px; margin-bottom: 8px;
+      display: grid; grid-template-columns: 28px 1fr; gap: 10px; align-items: start;
     }
     .session-icon {
       width: 28px; height: 28px; border-radius: 6px;
@@ -275,10 +215,7 @@
     .session-icon.red   { background: #FEF2F2; }
     .session-icon.gray  { background: #F1F5F9; }
     .session-body { min-width: 0; }
-    .session-top {
-      display: flex; align-items: center; gap: 8px;
-      margin-bottom: 4px;
-    }
+    .session-top  { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
     .session-title {
       font-size: 0.88rem; font-weight: 600; color: var(--text-primary);
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
@@ -287,15 +224,12 @@
       display: inline-flex; align-items: center;
       background: var(--accent-light); color: var(--accent);
       border: 1px solid #C8D9EE; border-radius: 4px;
-      font-size: 0.68rem; font-weight: 700; padding: 1px 5px;
-      flex-shrink: 0;
+      font-size: 0.68rem; font-weight: 700; padding: 1px 5px; flex-shrink: 0;
     }
-    /* meta line: date + confidence on left, reward on right */
     .session-meta {
       display: flex; align-items: center; justify-content: space-between; gap: 8px;
       font-size: 0.73rem; color: var(--text-muted);
     }
-    .meta-left { display: flex; align-items: center; gap: 6px; }
     .reward-green { color: #15643C; font-weight: 600; display: flex; align-items: center; gap: 4px; }
     .reward-gray  { color: var(--text-muted); }
     .explorer-link {
@@ -304,11 +238,7 @@
     }
     .explorer-link:hover { color: var(--accent); }
 
-    /* ── Empty / section title ───────────────────────────────────── */
-    .empty-msg {
-      text-align: center; color: var(--text-muted);
-      font-size: 0.85rem; padding: 32px 0;
-    }
+    .empty-msg { text-align: center; color: var(--text-muted); font-size: 0.85rem; padding: 32px 0; }
   </style>
 </head>
 <body>
@@ -327,56 +257,55 @@
       </div>
       <h1>AI 智慧回收機</h1>
     </div>
-    <p class="subtitle">掃碼成功。填入 IOTA 錢包地址後，完成投遞即可獲得獎勵。</p>
+    <p class="subtitle">掃碼成功。依照步驟完成投遞，分類成功即獲得 IOTA 獎勵。</p>
 
-    <!-- Steps -->
     <div class="steps">
-      <div class="step">
-        <div class="step-num">1</div>
-        <div class="step-body">
-          <div class="step-title">填入錢包地址</div>
-          <div class="step-desc">選擇測試錢包或填入自己的 IOTA Rebased devnet 地址</div>
+
+      <!-- Step 1: wallet input embedded -->
+      <div class="step step-expanded">
+        <div class="step-head">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <div class="step-title">填入獎勵錢包地址</div>
+            <div class="step-desc">選擇測試錢包，或填入自己的 IOTA Rebased devnet 地址</div>
+          </div>
+        </div>
+        <div>
+          <p class="demo-label">選擇測試錢包</p>
+          <div class="demo-btns">
+            <button type="button" class="demo-btn" onclick="selectDemo(0)">錢包 A</button>
+            <button type="button" class="demo-btn" onclick="selectDemo(1)">錢包 B</button>
+            <button type="button" class="demo-btn" onclick="selectDemo(2)">錢包 C</button>
+            <button type="button" class="demo-btn" onclick="selectDemo(3)">錢包 D</button>
+          </div>
+          <input
+            type="text" id="wallet" placeholder="0x…"
+            autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"
+          />
+          <p class="field-hint">0x + 64 位十六進位</p>
         </div>
       </div>
+
+      <!-- Step 2 -->
       <div class="step">
         <div class="step-num">2</div>
         <div class="step-body">
-          <div class="step-title">放上物品並按下機台按鈕</div>
-          <div class="step-desc">點擊「確認投遞」後，再將物品放到偵測平台並按下按鈕</div>
+          <div class="step-title">點擊「確認投遞」，再放上物品並按機台按鈕</div>
+          <div class="step-desc">先送出登記，再將物品放到偵測平台並按下按鈕</div>
         </div>
       </div>
+
+      <!-- Step 3 -->
       <div class="step">
         <div class="step-num">3</div>
         <div class="step-body">
-          <div class="step-title">AI 辨識並自動發放獎勵</div>
+          <div class="step-title">AI 辨識完成，自動發放獎勵</div>
           <div class="step-desc">可回收物品且信心度 ≥ 80%，即獲得 <strong>3 IOTA</strong> 匯入錢包</div>
         </div>
       </div>
+
     </div>
 
-    <!-- Wallet input -->
-    <div class="wallet-field">
-      <div class="section-label">獎勵錢包地址</div>
-
-      <div class="demo-wallets">
-        <p class="demo-label">選擇測試錢包，或在下方自行填入</p>
-        <div class="demo-btns">
-          <button type="button" class="demo-btn" onclick="selectDemo(0)">錢包 A</button>
-          <button type="button" class="demo-btn" onclick="selectDemo(1)">錢包 B</button>
-          <button type="button" class="demo-btn" onclick="selectDemo(2)">錢包 C</button>
-          <button type="button" class="demo-btn" onclick="selectDemo(3)">錢包 D</button>
-        </div>
-      </div>
-
-      <input
-        type="text" id="wallet"
-        placeholder="0x…"
-        autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"
-      />
-      <p class="field-hint">IOTA Rebased devnet 地址（0x + 64 位十六進位）</p>
-    </div>
-
-    <!-- Pay button -->
     <button id="payBtn" onclick="pay()">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -393,28 +322,31 @@
   <div id="tab-history" class="page" style="display:none">
 
     <a class="balance-card" id="balance-link" href="#" target="_blank" rel="noopener">
-      <div class="balance-label">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
-             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M20 12V22H4V12"/><path d="M22 7H2v5h20V7z"/>
-          <path d="M12 22V7"/>
-          <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/>
-          <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>
-        </svg>
-        IOTA 錢包餘額
+      <div class="balance-top">
+        <div class="balance-label">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 12V22H4V12"/><path d="M22 7H2v5h20V7z"/>
+            <path d="M12 22V7"/>
+            <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/>
+            <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>
+          </svg>
+          IOTA 錢包餘額
+        </div>
+        <div class="balance-explorer-hint">
+          查看我的錢包
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+            <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+          </svg>
+        </div>
       </div>
       <div>
         <span class="balance-amount" id="balance-amount">—</span>
         <span class="balance-unit">IOTA</span>
       </div>
-      <div class="balance-address" id="balance-address">
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
-             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-          <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
-        </svg>
-        <span id="balance-address-text"></span>
-      </div>
+      <div class="balance-address" id="balance-address-text"></div>
     </a>
 
     <div class="section-label">投遞記錄</div>
@@ -444,6 +376,6 @@
   </nav>
 
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-  <script src="app.js?v=3"></script>
+  <script src="app.js?v=4"></script>
 </body>
 </html>
