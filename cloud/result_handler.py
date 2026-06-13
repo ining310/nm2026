@@ -56,7 +56,7 @@ def handler(event, context):
                 f"類別：{cat_zh}\n"
                 f"信心度：{confidence:.0%}\n\n"
                 f"🎉 已發放 3 IOTA 獎勵至您的錢包。\n\n"
-                f"🔗 鏈上驗證（可截圖給助教）：\n{explorer_url}"
+                f"🔗 {explorer_url}"
             ))
         except Exception as exc:
             print(f"[ERROR] IOTA send_reward: {exc}")
