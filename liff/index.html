@@ -5,10 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AI 智慧回收機</title>
   <style>
-    /* ── Reset ─────────────────────────────────────────────── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    /* ── Tokens ─────────────────────────────────────────────── */
     :root {
       --bg:          #F7F9FC;
       --surface:     #FFFFFF;
@@ -23,117 +21,98 @@
       --accent-hover:#16304F;
       --accent-light:#EEF3FA;
 
-      --success-bg:  #F0F7F4;
+      --success-bg:     #F0F7F4;
       --success-border: #A7C9B9;
-      --success-text:#14563C;
-
-      --error-text:  #B91C1C;
+      --success-text:   #14563C;
+      --error-text:     #B91C1C;
 
       --radius-sm: 8px;
       --radius-md: 12px;
-      --radius-lg: 16px;
     }
 
-    /* ── Base ────────────────────────────────────────────────── */
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI",
                    "Helvetica Neue", sans-serif;
       background: var(--bg);
       min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      padding: 32px 16px 84px; /* extra bottom for tab bar */
       color: var(--text-primary);
       -webkit-font-smoothing: antialiased;
+      padding-bottom: calc(68px + env(safe-area-inset-bottom));
     }
 
-    /* ── Card ────────────────────────────────────────────────── */
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      width: 100%;
-      max-width: 380px;
-      padding: 32px 28px;
-      box-shadow: none;
+    /* ── Page sections (no card box) ───────────────────────────── */
+    .page {
+      padding: 28px 20px 8px;
+      max-width: 480px;
+      margin: 0 auto;
     }
 
-    /* ── Header ──────────────────────────────────────────────── */
+    /* ── Header ──────────────────────────────────────────────────── */
     .header {
       display: flex;
       align-items: center;
-      gap: 12px;
-      margin-bottom: 6px;
+      gap: 10px;
+      margin-bottom: 4px;
     }
     .header-icon {
-      width: 36px;
-      height: 36px;
+      width: 32px; height: 32px;
       background: var(--accent-light);
-      border-radius: var(--radius-sm);
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
       flex-shrink: 0;
     }
-    .header-icon svg { display: block; }
-    h1 {
-      font-size: 1.1rem;
-      font-weight: 700;
-      letter-spacing: -0.02em;
-      color: var(--text-primary);
-    }
+    h1 { font-size: 1.05rem; font-weight: 700; letter-spacing: -0.02em; }
     .subtitle {
       font-size: 0.82rem;
       color: var(--text-secondary);
-      margin-bottom: 28px;
+      margin-bottom: 24px;
       line-height: 1.5;
     }
 
-    /* ── Divider ─────────────────────────────────────────────── */
-    .divider {
-      height: 1px;
-      background: var(--border);
-      margin: 0 0 24px;
-    }
-
-    /* ── Field ───────────────────────────────────────────────── */
-    .field { margin-bottom: 20px; }
-    .field-label {
+    /* ── Steps (pay tab) ─────────────────────────────────────────── */
+    .steps {
       display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 0.78rem;
+      flex-direction: column;
+      gap: 0;
+      margin-bottom: 24px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+    }
+    .step {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 13px 16px;
+    }
+    .step + .step { border-top: 1px solid var(--border); }
+    .step-num {
+      width: 22px; height: 22px;
+      background: var(--accent);
+      color: #fff;
+      border-radius: 50%;
+      font-size: 0.72rem;
+      font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .step-body { font-size: 0.83rem; line-height: 1.5; }
+    .step-title { font-weight: 600; color: var(--text-primary); }
+    .step-desc  { color: var(--text-secondary); font-size: 0.78rem; margin-top: 1px; }
+
+    /* ── Divider ─────────────────────────────────────────────────── */
+    .section-label {
+      font-size: 0.72rem;
       font-weight: 600;
-      letter-spacing: 0.04em;
+      letter-spacing: 0.06em;
       text-transform: uppercase;
-      color: var(--text-secondary);
+      color: var(--text-muted);
       margin-bottom: 8px;
     }
-    .field-label svg { flex-shrink: 0; }
-    .input-wrap { position: relative; }
-    input[type="text"] {
-      width: 100%;
-      padding: 11px 14px;
-      border: 1.5px solid var(--border);
-      border-radius: var(--radius-sm);
-      font-size: 0.88rem;
-      font-family: "SF Mono", "Fira Code", "Fira Mono", monospace;
-      color: var(--text-primary);
-      background: var(--surface);
-      outline: none;
-      transition: border-color 0.15s;
-      letter-spacing: 0.01em;
-    }
-    input[type="text"]::placeholder { color: var(--text-muted); font-family: inherit; }
-    input[type="text"]:focus { border-color: var(--border-focus); }
-    .field-hint {
-      font-size: 0.75rem;
-      color: var(--text-muted);
-      margin-top: 5px;
-    }
 
-    /* ── Demo wallets ───────────────────────────────────────── */
+    /* ── Demo wallets ───────────────────────────────────────────── */
     .demo-wallets { margin-bottom: 10px; }
     .demo-label {
       font-size: 0.72rem;
@@ -150,67 +129,58 @@
       border-radius: var(--radius-sm) !important;
       font-size: 0.78rem !important;
       font-weight: 600 !important;
-      cursor: pointer;
-      transition: background 0.15s, border-color 0.15s;
       letter-spacing: 0;
+      cursor: pointer;
+      transition: background 0.15s;
     }
-    .demo-btn:not(:disabled):hover { background: #dce8f5 !important; border-color: var(--accent) !important; color: var(--accent) !important; }
+    .demo-btn:not(:disabled):hover { background: #dce8f5 !important; border-color: var(--accent) !important; }
     .demo-btn.active { background: var(--accent) !important; color: #fff !important; border-color: var(--accent) !important; }
 
-    /* ── Fee row ─────────────────────────────────────────────── */
-    .fee-row {
-      background: var(--accent-light);
-      border: 1px solid #C8D9EE;
+    /* ── Wallet input ────────────────────────────────────────────── */
+    .wallet-field { margin-bottom: 20px; }
+    input[type="text"] {
+      width: 100%;
+      padding: 11px 14px;
+      border: 1.5px solid var(--border);
       border-radius: var(--radius-sm);
-      padding: 14px 16px;
-      margin-bottom: 24px;
-      display: flex;
-      align-items: flex-start;
-      gap: 12px;
+      font-size: 0.88rem;
+      font-family: "SF Mono", "Fira Code", monospace;
+      color: var(--text-primary);
+      background: var(--surface);
+      outline: none;
+      transition: border-color 0.15s;
     }
-    .fee-row svg { flex-shrink: 0; margin-top: 1px; }
-    .fee-body { font-size: 0.82rem; color: var(--text-secondary); line-height: 1.6; }
-    .fee-body strong { color: var(--text-primary); font-weight: 700; }
-    .fee-reward {
-      font-size: 0.78rem;
-      color: var(--text-muted);
-      margin-top: 2px;
-    }
+    input[type="text"]::placeholder { color: var(--text-muted); font-family: inherit; }
+    input[type="text"]:focus { border-color: var(--border-focus); }
+    .field-hint { font-size: 0.73rem; color: var(--text-muted); margin-top: 5px; }
 
-    /* ── Button ──────────────────────────────────────────────── */
+    /* ── Button ──────────────────────────────────────────────────── */
     button {
       width: 100%;
       padding: 13px 20px;
       background: var(--accent);
-      color: #FFFFFF;
+      color: #fff;
       border: none;
       border-radius: var(--radius-md);
       font-size: 0.92rem;
       font-weight: 600;
-      letter-spacing: -0.01em;
       cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
       transition: background 0.15s, opacity 0.15s;
     }
     button:not(:disabled):hover { background: var(--accent-hover); }
     button:disabled { opacity: 0.45; cursor: not-allowed; }
 
-    /* ── Status message ──────────────────────────────────────── */
+    /* ── Status message ──────────────────────────────────────────── */
     #msg {
       margin-top: 14px;
       font-size: 0.82rem;
       line-height: 1.5;
-      min-height: 1.2em;
-      display: flex;
-      align-items: flex-start;
-      gap: 7px;
+      display: flex; align-items: flex-start; gap: 7px;
       color: var(--text-secondary);
     }
     #msg svg { flex-shrink: 0; margin-top: 1px; }
-    #msg.error { color: var(--error-text); }
+    #msg.error   { color: var(--error-text); }
     #msg.success {
       background: var(--success-bg);
       border: 1px solid var(--success-border);
@@ -220,108 +190,74 @@
     }
     #msg.hidden { display: none; }
 
-    /* ── Spinner ─────────────────────────────────────────────── */
+    /* ── Spinner ─────────────────────────────────────────────────── */
     .spin {
-      display: inline-block;
-      width: 16px; height: 16px;
-      border: 2px solid rgba(255,255,255,0.35);
-      border-top-color: #fff;
+      display: inline-block; width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,0.35); border-top-color: #fff;
       border-radius: 50%;
       animation: spin 0.7s linear infinite;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ── Bottom tab bar ──────────────────────────────────────── */
+    /* ── Bottom tab bar ──────────────────────────────────────────── */
     .tab-bar {
-      position: fixed;
-      bottom: 0; left: 0; right: 0;
-      height: 52px;
+      position: fixed; bottom: 0; left: 0; right: 0;
       background: var(--surface);
       border-top: 1px solid var(--border);
       display: flex;
+      padding-bottom: env(safe-area-inset-bottom);
       z-index: 100;
     }
     .tab-btn {
       flex: 1;
-      width: auto !important;
-      padding: 0 !important;
-      background: none !important;
-      border: none !important;
-      border-radius: 0 !important;
-      font-size: 0.82rem !important;
-      font-weight: 500 !important;
+      width: auto !important; padding: 10px 0 10px !important;
+      background: none !important; border: none !important; border-radius: 0 !important;
+      font-size: 0.76rem !important; font-weight: 500 !important;
       color: var(--text-muted) !important;
       letter-spacing: 0;
-      display: flex !important;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 3px !important;
-      cursor: pointer;
-      transition: color 0.15s;
-      opacity: 1 !important;
+      display: flex !important; flex-direction: column;
+      align-items: center; justify-content: center; gap: 4px !important;
+      cursor: pointer; transition: color 0.15s; opacity: 1 !important;
     }
     .tab-btn:not(:disabled):hover { background: none !important; color: var(--accent) !important; }
-    .tab-btn.active {
-      color: var(--accent) !important;
-      font-weight: 700 !important;
-    }
+    .tab-btn.active { color: var(--accent) !important; font-weight: 700 !important; }
     .tab-btn.active svg { stroke: var(--accent); }
     .tab-btn:not(.active) svg { stroke: var(--text-muted); }
 
-    /* ── History: balance card ───────────────────────────────── */
+    /* ── History: balance card ───────────────────────────────────── */
     .balance-card {
-      background: var(--accent-light);
-      border: 1px solid #C8D9EE;
+      background: var(--surface);
+      border: 1px solid var(--border);
       border-radius: var(--radius-md);
-      padding: 20px;
-      margin-bottom: 20px;
+      padding: 18px 20px;
+      margin-bottom: 24px;
       text-align: center;
+      text-decoration: none;
+      display: block;
+      transition: border-color 0.15s;
     }
+    .balance-card:hover { border-color: var(--accent); }
     .balance-label {
-      font-size: 0.75rem;
-      font-weight: 600;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-      color: var(--text-secondary);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      margin-bottom: 10px;
+      font-size: 0.72rem; font-weight: 600; letter-spacing: 0.05em;
+      text-transform: uppercase; color: var(--text-secondary);
+      display: flex; align-items: center; justify-content: center; gap: 5px;
+      margin-bottom: 8px;
     }
     .balance-amount {
-      font-size: 2rem;
-      font-weight: 700;
-      color: var(--accent);
-      letter-spacing: -0.03em;
-      line-height: 1;
+      font-size: 2rem; font-weight: 700; color: var(--accent);
+      letter-spacing: -0.03em; line-height: 1;
     }
-    .balance-unit {
-      font-size: 1rem;
-      font-weight: 500;
-      color: var(--text-secondary);
-      margin-left: 4px;
-    }
+    .balance-unit { font-size: 1rem; font-weight: 500; color: var(--text-secondary); margin-left: 3px; }
     .balance-address {
-      font-size: 0.72rem;
-      color: var(--text-muted);
-      font-family: "SF Mono", "Fira Code", monospace;
-      margin-top: 8px;
+      font-size: 0.7rem; color: var(--text-muted);
+      font-family: "SF Mono", "Fira Code", monospace; margin-top: 8px;
+      display: flex; align-items: center; justify-content: center; gap: 4px;
     }
+    .balance-address svg { flex-shrink: 0; }
 
-    /* ── History: section title ──────────────────────────────── */
-    .section-title {
-      font-size: 0.75rem;
-      font-weight: 600;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-      color: var(--text-secondary);
-      margin-bottom: 10px;
-    }
-
-    /* ── History: session row ────────────────────────────────── */
+    /* ── History: session row ────────────────────────────────────── */
     .session-row {
+      background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius-sm);
       padding: 11px 13px;
@@ -332,86 +268,57 @@
       align-items: start;
     }
     .session-icon {
-      width: 28px; height: 28px;
-      border-radius: 6px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
+      width: 28px; height: 28px; border-radius: 6px;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
     }
     .session-icon.green { background: #EBF5EE; }
     .session-icon.red   { background: #FEF2F2; }
     .session-icon.gray  { background: #F1F5F9; }
     .session-body { min-width: 0; }
     .session-top {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 6px;
-      margin-bottom: 3px;
-    }
-    .session-title {
-      font-size: 0.88rem;
-      font-weight: 600;
-      color: var(--text-primary);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .chip-mine {
-      display: inline-flex;
-      align-items: center;
-      background: var(--accent-light);
-      color: var(--accent);
-      border: 1px solid #C8D9EE;
-      border-radius: 4px;
-      font-size: 0.68rem;
-      font-weight: 700;
-      padding: 1px 5px;
-      flex-shrink: 0;
-    }
-    .session-meta {
-      font-size: 0.73rem;
-      color: var(--text-muted);
+      display: flex; align-items: center; gap: 8px;
       margin-bottom: 4px;
     }
-    .session-reward {
-      font-size: 0.78rem;
-      display: flex;
-      align-items: center;
-      gap: 5px;
+    .session-title {
+      font-size: 0.88rem; font-weight: 600; color: var(--text-primary);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
-    .reward-green {
-      color: #15643C;
-      font-weight: 600;
+    .chip-mine {
+      display: inline-flex; align-items: center;
+      background: var(--accent-light); color: var(--accent);
+      border: 1px solid #C8D9EE; border-radius: 4px;
+      font-size: 0.68rem; font-weight: 700; padding: 1px 5px;
+      flex-shrink: 0;
     }
-    .reward-gray { color: var(--text-muted); }
+    /* meta line: date + confidence on left, reward on right */
+    .session-meta {
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+      font-size: 0.73rem; color: var(--text-muted);
+    }
+    .meta-left { display: flex; align-items: center; gap: 6px; }
+    .reward-green { color: #15643C; font-weight: 600; display: flex; align-items: center; gap: 4px; }
+    .reward-gray  { color: var(--text-muted); }
     .explorer-link {
-      display: inline-flex;
-      align-items: center;
-      color: var(--text-muted);
-      text-decoration: none;
-      transition: color 0.15s;
+      display: inline-flex; align-items: center; color: var(--text-muted);
+      text-decoration: none; transition: color 0.15s;
     }
     .explorer-link:hover { color: var(--accent); }
 
-    /* ── History: empty state ────────────────────────────────── */
+    /* ── Empty / section title ───────────────────────────────────── */
     .empty-msg {
-      text-align: center;
-      color: var(--text-muted);
-      font-size: 0.85rem;
-      padding: 32px 0;
+      text-align: center; color: var(--text-muted);
+      font-size: 0.85rem; padding: 32px 0;
     }
   </style>
 </head>
 <body>
 
-  <!-- ══ Tab 1: Pay ══════════════════════════════════════════════ -->
-  <div id="tab-pay" class="card">
+  <!-- ══ Tab 1: 投遞 ═══════════════════════════════════════════════ -->
+  <div id="tab-pay" class="page">
 
     <div class="header">
       <div class="header-icon">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none"
              stroke="#1E3A5F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="1 4 1 10 7 10"/>
           <polyline points="23 20 23 14 17 14"/>
@@ -420,25 +327,39 @@
       </div>
       <h1>AI 智慧回收機</h1>
     </div>
-    <p class="subtitle">掃碼成功。請填入您的 IOTA 錢包地址，分類成功即可獲得獎勵。</p>
+    <p class="subtitle">掃碼成功。填入 IOTA 錢包地址後，完成投遞即可獲得獎勵。</p>
 
-    <div class="divider"></div>
-
-    <div class="field">
-      <div class="field-label">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
-             stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M20 12V22H4V12"/>
-          <path d="M22 7H2v5h20V7z"/>
-          <path d="M12 22V7"/>
-          <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/>
-          <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>
-        </svg>
-        獎勵錢包地址
+    <!-- Steps -->
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <div class="step-title">填入錢包地址</div>
+          <div class="step-desc">選擇測試錢包或填入自己的 IOTA Rebased devnet 地址</div>
+        </div>
       </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <div class="step-title">放上物品並按下機台按鈕</div>
+          <div class="step-desc">點擊「確認投遞」後，再將物品放到偵測平台並按下按鈕</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <div class="step-title">AI 辨識並自動發放獎勵</div>
+          <div class="step-desc">可回收物品且信心度 ≥ 80%，即獲得 <strong>3 IOTA</strong> 匯入錢包</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Wallet input -->
+    <div class="wallet-field">
+      <div class="section-label">獎勵錢包地址</div>
 
       <div class="demo-wallets">
-        <p class="demo-label">選擇測試錢包（或在下方自行填入）</p>
+        <p class="demo-label">選擇測試錢包，或在下方自行填入</p>
         <div class="demo-btns">
           <button type="button" class="demo-btn" onclick="selectDemo(0)">錢包 A</button>
           <button type="button" class="demo-btn" onclick="selectDemo(1)">錢包 B</button>
@@ -447,35 +368,15 @@
         </div>
       </div>
 
-      <div class="input-wrap">
-        <input
-          type="text"
-          id="wallet"
-          placeholder="0x…"
-          autocomplete="off"
-          autocorrect="off"
-          autocapitalize="none"
-          spellcheck="false"
-        />
-      </div>
+      <input
+        type="text" id="wallet"
+        placeholder="0x…"
+        autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"
+      />
       <p class="field-hint">IOTA Rebased devnet 地址（0x + 64 位十六進位）</p>
     </div>
 
-    <div class="fee-row">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
-           stroke="#1E3A5F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="10"/>
-        <line x1="12" y1="16" x2="12" y2="12"/>
-        <line x1="12" y1="8" x2="12.01" y2="8"/>
-      </svg>
-      <div>
-        <div class="fee-body">
-          分類成功獲得 <strong>3 IOTA</strong> 獎勵
-        </div>
-        <div class="fee-reward">AI 判斷可回收且信心度 ≥ 80% 才發放，交易上鏈可供查驗</div>
-      </div>
-    </div>
-
+    <!-- Pay button -->
     <button id="payBtn" onclick="pay()">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -486,46 +387,46 @@
     </button>
 
     <div id="msg" class="hidden"></div>
-
   </div>
 
-  <!-- ══ Tab 2: History ══════════════════════════════════════════ -->
-  <div id="tab-history" class="card" style="display:none">
+  <!-- ══ Tab 2: 歷史 ═══════════════════════════════════════════════ -->
+  <div id="tab-history" class="page" style="display:none">
 
-    <!-- Balance card -->
-    <div class="balance-card">
+    <a class="balance-card" id="balance-link" href="#" target="_blank" rel="noopener">
       <div class="balance-label">
-        <!-- Wallet icon -->
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
-             stroke="#4A6082" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M20 12V22H4V12"/>
-          <path d="M22 7H2v5h20V7z"/>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 12V22H4V12"/><path d="M22 7H2v5h20V7z"/>
           <path d="M12 22V7"/>
           <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/>
           <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>
         </svg>
-        錢包餘額
+        IOTA 錢包餘額
       </div>
       <div>
         <span class="balance-amount" id="balance-amount">—</span>
         <span class="balance-unit">IOTA</span>
       </div>
-      <div class="balance-address" id="balance-address"></div>
-    </div>
+      <div class="balance-address" id="balance-address">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+          <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+        </svg>
+        <span id="balance-address-text"></span>
+      </div>
+    </a>
 
-    <!-- Session list -->
-    <div class="section-title">投遞記錄</div>
+    <div class="section-label">投遞記錄</div>
     <div id="sessions-list">
       <p class="empty-msg">載入中…</p>
     </div>
-
   </div>
 
-  <!-- ══ Bottom tab bar ══════════════════════════════════════════ -->
+  <!-- ══ Bottom tab bar ════════════════════════════════════════════ -->
   <nav class="tab-bar">
     <button class="tab-btn active" id="tab-btn-pay" onclick="switchTab('pay')">
-      <!-- Recycle icon -->
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <polyline points="1 4 1 10 7 10"/>
         <polyline points="23 20 23 14 17 14"/>
@@ -534,17 +435,15 @@
       投遞
     </button>
     <button class="tab-btn" id="tab-btn-history" onclick="switchTab('history')">
-      <!-- Clock icon -->
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="10"/>
-        <polyline points="12 6 12 12 16 14"/>
+        <path d="M3 3h18v4H3z"/><path d="M3 10h18"/><path d="M3 15h9"/><path d="M3 20h6"/>
       </svg>
-      記錄
+      歷史
     </button>
   </nav>
 
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-  <script src="app.js?v=2"></script>
+  <script src="app.js?v=3"></script>
 </body>
 </html>

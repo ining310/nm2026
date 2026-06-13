@@ -100,7 +100,8 @@ async function loadHistory() {
 // ── History: render balance ───────────────────────────────────────────────────
 function renderBalance(data, walletAddr) {
   const amountEl  = document.getElementById("balance-amount");
-  const addressEl = document.getElementById("balance-address");
+  const addrText  = document.getElementById("balance-address-text");
+  const linkEl    = document.getElementById("balance-link");
 
   if (data && data.ok) {
     amountEl.textContent = data.balance_iota.toFixed(1);
@@ -108,11 +109,15 @@ function renderBalance(data, walletAddr) {
     amountEl.textContent = "—";
   }
 
-  // Truncate: first 6 + … + last 4
+  // Truncate: first 8 + … + last 4
   const short = walletAddr.length > 12
     ? `${walletAddr.slice(0, 8)}…${walletAddr.slice(-4)}`
     : walletAddr;
-  addressEl.textContent = short;
+  addrText.textContent = short;
+
+  // Link to explorer
+  const explorerUrl = `https://explorer.rebased.iota.org/address/${walletAddr}?network=devnet`;
+  linkEl.href = explorerUrl;
 }
 
 // ── History: render session list ──────────────────────────────────────────────
@@ -166,31 +171,29 @@ function sessionRowHTML(s) {
   // "我" chip
   const mineChip = s.is_mine ? `<span class="chip-mine">我</span>` : "";
 
-  // Meta line
-  let meta = fmtDate(s.created_at);
+  // Meta left: date + confidence
+  let metaLeft = fmtDate(s.created_at);
   if (!isPending && s.confidence > 0) {
-    meta += `　信心度 ${Math.round(s.confidence * 100)}%`;
+    metaLeft += `　信心度 ${Math.round(s.confidence * 100)}%`;
   }
 
-  // Reward line
-  let rewardHTML = "";
-  if (isPending) {
-    rewardHTML = "";
-  } else if (isRewarded) {
-    const linkHTML = s.iota_explorer_url
-      ? `<a class="explorer-link" href="${escHtml(s.iota_explorer_url)}" target="_blank" rel="noopener">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-            <polyline points="15 3 21 3 21 9"/>
-            <line x1="10" y1="14" x2="21" y2="3"/>
-          </svg>
-        </a>` : "";
-    rewardHTML = `<div class="session-reward">
-      <span class="reward-green">+3 IOTA</span>${linkHTML}
-    </div>`;
-  } else {
-    rewardHTML = `<div class="session-reward"><span class="reward-gray">未獲獎勵</span></div>`;
+  // Reward right (same line as meta)
+  let rewardRight = "";
+  if (!isPending) {
+    if (isRewarded) {
+      const linkHTML = s.iota_explorer_url
+        ? `<a class="explorer-link" href="${escHtml(s.iota_explorer_url)}" target="_blank" rel="noopener">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+              <polyline points="15 3 21 3 21 9"/>
+              <line x1="10" y1="14" x2="21" y2="3"/>
+            </svg>
+          </a>` : "";
+      rewardRight = `<span class="reward-green">+3 IOTA${linkHTML}</span>`;
+    } else {
+      rewardRight = `<span class="reward-gray">未獲獎勵</span>`;
+    }
   }
 
   return `
@@ -198,10 +201,13 @@ function sessionRowHTML(s) {
       <div class="session-icon ${iconColor}">${iconSVG}</div>
       <div class="session-body">
         <div class="session-top">
-          <span class="session-title">${escHtml(title)}${mineChip}</span>
+          <span class="session-title">${escHtml(title)}</span>
+          ${mineChip}
         </div>
-        <div class="session-meta">${meta}</div>
-        ${rewardHTML}
+        <div class="session-meta">
+          <span class="meta-left">${metaLeft}</span>
+          ${rewardRight}
+        </div>
       </div>
     </div>`;
 }
