@@ -20,7 +20,7 @@ def handler(event, context):
         return _resp(400, {"ok": False, "error": f"Bad request: {exc}"})
 
     # ── daily limit ───────────────────────────────────────────────────────────
-    DAILY_LIMIT = 3
+    DAILY_LIMIT = 10
     try:
         if db.count_today(line_user_id) >= DAILY_LIMIT:
             return _resp(429, {"ok": False, "error": f"Daily limit of {DAILY_LIMIT} recycles reached. Try again tomorrow."})

@@ -108,7 +108,7 @@ async function pay() {
       已確認`;
 
   } catch (err) {
-    setMsg(ICON_ERR, `付款失敗：${err.message}`, "error");
+    setMsg(ICON_ERR, `登記失敗：${err.message}`, "error");
     btn.disabled = false;
     btn.innerHTML = `
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
