@@ -47,7 +47,7 @@ except ImportError:
     print("[WARN] vlm module not available", file=sys.stderr)
 
 try:
-    from detection import detect_object_detailed
+    from detection import capture_image
     _DETECTION_AVAILABLE = True
 except ImportError:
     _DETECTION_AVAILABLE = False
@@ -375,10 +375,9 @@ class KioskApp:
     def _run_detection(self):
         session_id = self._current_session_id
         try:
-            # Step 1: Hailo detection + capture
+            # Step 1: capture image
             if _DETECTION_AVAILABLE:
-                hailo = detect_object_detailed()
-                image_path = hailo["image_path"]
+                image_path, _ = capture_image()
             else:
                 image_path = "/tmp/mock_image.jpg"
                 print("[DETECT] mock image path used")
