@@ -180,6 +180,16 @@ class KioskApp:
 
         self._show("waiting")
 
+        # Pre-flight: skip any session already in DB before kiosk started
+        try:
+            data = api_check()
+            if data.get("status") == "paid":
+                stale = data["session_id"]
+                self._skip_sessions.add(stale)
+                print(f"[INIT] skipping pre-existing session {stale}")
+        except Exception:
+            pass
+
         # Start polling thread
         t = threading.Thread(target=self._poll_loop, daemon=True)
         t.start()
