@@ -150,6 +150,7 @@ class KioskApp:
         self._polling = True
         self._processing = False
         self._qr_image = None   # keep reference to prevent GC
+        self._skip_sessions: set[str] = set()  # sessions to ignore after timeout/error
 
         # Fonts
         self._fonts()
@@ -206,21 +207,21 @@ class KioskApp:
         tk.Label(inner, text="請掃描 QR Code 登記投遞", font=self.f_subtitle,
                  bg=BG, fg=MUTED).pack(pady=(0, 20))
 
-        # QR image (or fallback URL label)
-        if _QR_AVAILABLE:
-            qr = qrcode.QRCode(box_size=6, border=2)
-            qr.add_data(LIFF_URL)
-            qr.make(fit=True)
-            img = qr.make_image(fill_color=ACCENT, back_color="white")
-            img = img.resize((240, 240), Image.LANCZOS)
-            self._qr_image = ImageTk.PhotoImage(img)
+        # QR image from link.png (same directory as kiosk.py)
+        _img_path = Path(__file__).parent / "link.png"
+        try:
+            if _QR_AVAILABLE:
+                img = Image.open(_img_path).resize((100, 100), Image.LANCZOS)
+                self._qr_image = ImageTk.PhotoImage(img)
+            else:
+                self._qr_image = tk.PhotoImage(file=str(_img_path))
             qr_frame = tk.Frame(inner, bg="white", padx=8, pady=8,
                                 relief="flat", bd=0,
                                 highlightthickness=1, highlightbackground=BORDER)
             qr_frame.pack()
             tk.Label(qr_frame, image=self._qr_image, bg="white").pack()
-        else:
-            # Dev fallback: show URL
+        except Exception as _e:
+            print(f"[WARN] link.png not found or unreadable: {_e}", file=sys.stderr)
             tk.Label(inner, text=LIFF_URL, font=self.f_small,
                      bg=BG, fg=MUTED, wraplength=400).pack()
 
@@ -314,8 +315,11 @@ class KioskApp:
                     data = api_check()
                     if data.get("status") == "paid":
                         session_id = data["session_id"]
-                        print(f"[POLL] session {session_id} registered")
-                        self.root.after(0, self._on_session_registered, session_id)
+                        if session_id in self._skip_sessions:
+                            pass  # timed-out or errored session, ignore
+                        else:
+                            print(f"[POLL] session {session_id} registered")
+                            self.root.after(0, self._on_session_registered, session_id)
                 except Exception as e:
                     print(f"[POLL] check failed: {e}", file=sys.stderr)
                     self.root.after(0, lambda: self.waiting_status.config(
@@ -343,6 +347,8 @@ class KioskApp:
         self._registered_timeout_job = None
         if not self._processing:
             print("[KIOSK] registered timeout — resetting to waiting")
+            if self._current_session_id:
+                self._skip_sessions.add(self._current_session_id)
             self._reset()
 
     def _on_start_pressed(self):
@@ -458,6 +464,8 @@ class KioskApp:
         self.root.after(RESULT_HOLD_MS, self._reset)
 
     def _show_error(self, msg: str):
+        if self._current_session_id:
+            self._skip_sessions.add(self._current_session_id)
         self.error_label.config(text=msg)
         self._show("error")
         self.root.after(ERROR_HOLD_MS, self._reset)
