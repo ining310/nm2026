@@ -261,7 +261,7 @@ class KioskApp:
         # Start button
         btn = tk.Button(
             inner,
-            text="開始投遞",
+            text="已放置，開始偵測",
             font=self.f_btn,
             bg=ACCENT_BTN,
             fg="white",
