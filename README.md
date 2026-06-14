@@ -1,12 +1,12 @@
 # AI Smart Recycling Bin with IOTA Wallet Reward System
-Updated: 2026/6/13
+Updated: 2026/6/15
 ## 1. Project Overview
 
 This project proposes an **AI-powered smart recycling bin** that automatically classifies waste and physically sorts it into the correct recycling bin. The system combines **Raspberry Pi, computer vision, motor control, IOTA wallet transactions, QR-code-based user interaction, and LINE chatbot integration**.
 
 The user first uses the camera on their phone to scan a QR code on the recycling machine. After scanning the QR code, the user is directed to a LIFF page where they enter their IOTA wallet address to register a recycling session. There is no entry fee.
 
-After registration, the user **places the garbage directly onto the detection platform** (there is no entry gate). Once the garbage is placed, the user **manually presses the physical button on the machine** to trigger the detection process.
+After registration, the Kiosk screen on the machine switches to show a "開始投遞" button. The user **places the garbage directly onto the detection platform** (there is no entry gate), then **taps the touchscreen button** to trigger the detection process.
 
 The Raspberry Pi camera then captures the image of the garbage. A two-stage AI pipeline runs:
 1. **Hailo AI Hat** (YOLOv8) performs real-time object detection to identify what is in the frame.
@@ -60,21 +60,23 @@ The system aims to:
 ### 4.1 High-Level Flow
 
 ```text
-User scans QR code on the recycling machine using phone camera
+User scans QR code on Kiosk screen using phone camera
         ↓
-User is directed to LIFF page
+User is directed to LINE LIFF page
         ↓
 User enters their IOTA wallet address and clicks "確認投遞"
         ↓
 Session registered (Lambda writes DynamoDB status to "paid")
         ↓
-User places garbage directly onto the detection platform
+Kiosk polls GET /check every 2s → detects paid session
         ↓
-User presses the physical button on the machine
+Kiosk shows "開始投遞" touchscreen button
+        ↓
+User places garbage onto detection platform, then taps button
         ↓
 Raspberry Pi camera captures image
         ↓
-AI model classifies the garbage
+Hailo YOLOv8 + GPT-4V classifies the garbage
         ↓
 Raspberry Pi turntable servo rotates to target bin position
         ↓
@@ -84,7 +86,7 @@ Turntable servo returns to idle position (90°)
         ↓
 Raspberry Pi calls Lambda /result endpoint once
         ↓
-Lambda immediately sends IOTA reward or error notification + LINE push
+Lambda pushes LINE notification → sends IOTA reward → updates DB
 ```
 
 ---
@@ -126,16 +128,14 @@ Bot: ✅ 登記成功！請將垃圾放上偵測平台，再按下機台上的�
 
 ---
 
-### Step 3: User Places Garbage and Presses Button
+### Step 3: User Places Garbage and Taps Touchscreen
 
 There is no entry gate. The user places the garbage **directly onto the open detection platform**.
 
-After placing the garbage, the user **manually presses the physical button** on the machine.
-
-The button is connected to a Raspberry Pi GPIO pin configured as an interrupt. When the button is pressed, the Raspberry Pi immediately starts the detection process.
+The Kiosk screen (running `main.py` on the Raspberry Pi) displays a "開始投遞" button after detecting a registered session. The user taps this button to start detection.
 
 ```text
-User places garbage on platform → User presses button → GPIO interrupt fires → detection starts
+User places garbage on platform → User taps "開始投遞" on screen → detection starts
 ```
 
 ---
@@ -327,9 +327,13 @@ AI 判斷可回收即可獲得 3 IOTA 獎勵。
 
 [User places garbage and presses button]
 
-Bot: ✅ 分類成功！已發送 3 IOTA 獎勵。
-類別：metal_can　信心度：92%
-交易：https://explorer.rebased.iota.org/txblock/...?network=devnet
+Bot: ♻️ 分類成功！
+類別：金屬罐
+信心度：92%
+
+🎉 正在發放 3 IOTA 獎勵至您的錢包，請稍候…
+
+Bot: 🔗 https://explorer.iota.org/txblock/...?network=devnet
 ```
 
 ---
@@ -358,7 +362,7 @@ Bot: ❌ 無法明確分類，未發送獎勵。
 | Raspberry Pi 5 | Main controller for camera, AI model, GPIO button, and servos |
 | Hailo AI Hat | Runs YOLOv8 object detection on-device in real time |
 | Raspberry Pi Camera | Captures image of garbage |
-| Physical Button | Pressed by user to trigger detection after placing garbage |
+| Touchscreen Display | Shows Kiosk UI (QR code, session status, result); user taps to trigger detection |
 | SG90 Turntable Servo | Rotates the platform to the correct bin position (0°/45°/135°/180°) |
 | SG90 Gate Servo A | Left gate — opens/closes to drop garbage |
 | SG90 Gate Servo B | Right gate — opens/closes to drop garbage |
@@ -374,7 +378,7 @@ Bot: ❌ 無法明確分類，未發送獎勵。
 | Component | Purpose |
 |---|---|
 | AI Classification Model | Classifies garbage category from camera image |
-| Raspberry Pi Control Program | Controls camera, GPIO button interrupt, and two motors |
+| Raspberry Pi Control Program | Kiosk UI (tkinter), polls session state, controls camera and motors |
 | AWS Lambda + API Gateway | Cloud backend for payment, result handling, and reward logic |
 | IOTA Wallet Module | Handles entry payment and reward transaction |
 | LINE Chatbot / LIFF | Provides user interface after QR code scanning |
@@ -415,7 +419,9 @@ The Raspberry Pi follows this control logic:
 ```python
 START
 
-wait_for_button_press()          # GPIO interrupt, no polling
+# Kiosk background thread polls GET /check every 2s
+# When status == "paid", show "開始投遞" button on screen
+wait_for_touchscreen_tap()
 
 hailo_result = detect_object_detailed()   # Stage 1: Hailo YOLOv8
 vlm_result   = run_vlm(hailo_result["image_path"])  # Stage 2: GPT-4V
@@ -431,6 +437,7 @@ recycle_bin.dispose(category)
 # Fire once — Lambda handles everything from here
 send_result_to_lambda(vlm_result)
 
+# Kiosk shows result screen for 6s, then resets to QR code screen
 END
 ```
 
@@ -446,7 +453,7 @@ The demo can include:
 
 - one QR code printed on the machine
 - one small open detection platform (no gate needed)
-- one physical push button connected to Raspberry Pi GPIO
+- one touchscreen display running the Kiosk UI
 - one Raspberry Pi
 - one camera
 - two servo motors
@@ -471,9 +478,9 @@ A simple demo flow can be:
 1. User opens the phone camera and scans the QR code on the recycling machine.
 2. The QR code opens the LIFF page.
 3. User enters their IOTA wallet address and clicks 確認投遞.
-4. Lambda registers the session and sends a LINE message asking the user to place the garbage and press the button.
+4. Lambda registers the session. Kiosk screen detects the new session and shows "開始投遞" button.
 5. User places a metal can directly onto the detection platform.
-6. User presses the physical button on the machine.
+6. User taps "開始投遞" on the Kiosk touchscreen.
 7. Camera captures the image.
 8. Hailo detects an object in the frame.
 9. GPT-4V classifies it as metal_can → Category.METAL → turntable angle 45°.
