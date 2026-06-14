@@ -65,9 +65,10 @@ except Exception as _e:
 # ── Constants ─────────────────────────────────────────────────────────────────
 LIFF_ID          = "2010382965-397QCX0y"
 LIFF_URL         = f"https://liff.line.me/{LIFF_ID}?machine_id={MACHINE_ID}"
-POLL_INTERVAL_S  = 2
-RESULT_HOLD_MS   = 6000
-ERROR_HOLD_MS    = 8000
+POLL_INTERVAL_S     = 2
+RESULT_HOLD_MS      = 6000
+ERROR_HOLD_MS       = 8000
+REGISTERED_TIMEOUT_MS = 60_000   # reset if user doesn't press Start within 60s
 
 # Colors — matches LIFF palette
 BG            = "#F7F9FC"
@@ -172,14 +173,15 @@ class KioskApp:
             self.frames[name] = f
             builder(f)
 
+        # Dot animation + timeout jobs (must be set before _show)
+        self._dot_job = None
+        self._registered_timeout_job = None
+
         self._show("waiting")
 
         # Start polling thread
         t = threading.Thread(target=self._poll_loop, daemon=True)
         t.start()
-
-        # Dot animation
-        self._dot_job = None
 
     # ── Font setup ────────────────────────────────────────────────────────────
 
@@ -330,10 +332,25 @@ class KioskApp:
             return
         self._current_session_id = session_id
         self._show("registered")
+        # Cancel any previous timeout and start a fresh one
+        if self._registered_timeout_job:
+            self.root.after_cancel(self._registered_timeout_job)
+        self._registered_timeout_job = self.root.after(
+            REGISTERED_TIMEOUT_MS, self._on_registered_timeout
+        )
+
+    def _on_registered_timeout(self):
+        self._registered_timeout_job = None
+        if not self._processing:
+            print("[KIOSK] registered timeout — resetting to waiting")
+            self._reset()
 
     def _on_start_pressed(self):
         if self._processing or not self._current_session_id:
             return
+        if self._registered_timeout_job:
+            self.root.after_cancel(self._registered_timeout_job)
+            self._registered_timeout_job = None
         self._processing = True
         self._show("detecting")
         t = threading.Thread(target=self._run_detection, daemon=True)
