@@ -3,13 +3,14 @@ Raspberry Pi main loop.
 
 Flow:
   1. GPIO interrupt fires when the physical button is pressed.
-  2. Call GET /check — if not "paid", ignore (tamper-proof).
+  2. GET /check — verify a LIFF session is registered ("paid" state); ignore if not.
   3. Capture image with the Pi camera.
-  4. Run VLM classification (GPT-4V via tmp.py / vlm.py).
+  4. Run VLM classification (GPT-4V via vlm.py).
   5. RecycleBin.dispose() — rotate turntable, open/close gate, return to idle.
-  6. POST /result to cloud — fire and move on.
+  6. POST /result to cloud with classification output — Lambda handles IOTA reward + LINE push.
 """
 import json
+import re
 import sys
 import time
 
@@ -63,7 +64,9 @@ _processing = False
 # ── helpers ───────────────────────────────────────────────────────────────────
 
 def check_payment() -> dict:
-    """GET /check and return {"status": "paid"|"waiting", "session_id": ...}."""
+    """GET /check — return {"status": "paid"|"waiting", "session_id": ...}.
+    "paid" means a user has registered via LIFF and is waiting for detection.
+    """
     resp = requests.get(
         f"{API_BASE}/check",
         params={"machine_id": MACHINE_ID},
@@ -77,13 +80,18 @@ def run_vlm(image_path: str) -> dict:
     """Call GPT-4V to classify the garbage image. Returns the result dict."""
     client = OpenAI(api_key=get_api_key())
     raw    = describe_image(client, Path(image_path))
-    return json.loads(raw)
+    # Extract JSON block in case the model wraps it in extra text
+    match  = re.search(r'\{.*\}', raw, re.DOTALL)
+    if not match:
+        raise ValueError(f"VLM returned non-JSON output: {raw!r}")
+    return json.loads(match.group())
 
 
 def send_result(session_id: str, result: dict) -> None:
     """POST /result once and return; do not poll for a response."""
     payload = {"session_id": session_id, "machine_id": MACHINE_ID, **result}
-    resp = requests.post(f"{API_BASE}/result", json=payload, timeout=10)
+    # Timeout 90s: Lambda itself can take ~60s waiting for IOTA tx confirmation
+    resp = requests.post(f"{API_BASE}/result", json=payload, timeout=90)
     resp.raise_for_status()
     print(f"[RESULT] cloud acknowledged: {resp.json()}")
 
@@ -98,10 +106,10 @@ def on_button_press(channel=None) -> None:
     _processing = True
 
     try:
-        # ── Step 1: payment check ─────────────────────────────────────────────
+        # ── Step 1: registration check ───────────────────────────────────────
         status_data = check_payment()
         if status_data.get("status") != "paid":
-            print("[BTN] machine not in 'paid' state — ignoring press")
+            print("[BTN] no registered session — ignoring press")
             return
 
         session_id = status_data["session_id"]
@@ -110,7 +118,10 @@ def on_button_press(channel=None) -> None:
         # ── Step 2: capture + Hailo detection ────────────────────────────────
         hailo = detect_object_detailed()
         image_path = hailo["image_path"]
-        print(f"[AI] Hailo top hit: {hailo['object']} ({hailo['confidence']:.2f})")
+        if hailo["object"] is not None:
+            print(f"[AI] Hailo top hit: {hailo['object']} ({hailo['confidence']:.2f})")
+        else:
+            print("[AI] Hailo: no object detected — proceeding to VLM")
 
         # ── Step 3: VLM classification ────────────────────────────────────────
         result = run_vlm(image_path)
