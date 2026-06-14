@@ -10,7 +10,7 @@ After registration, the Kiosk screen on the machine switches to show a "開始�
 
 The Raspberry Pi camera then captures the image of the garbage. A two-stage AI pipeline runs:
 1. **Hailo AI Hat** (YOLOv8) performs real-time object detection to identify what is in the frame.
-2. **GPT-4V (VLM)** classifies the item into a recycling category and determines which bin it should go into.
+2. **GPT-5.5 (VLM)** classifies the item into a recycling category and determines which bin it should go into.
 
 After classification, the Raspberry Pi controls three SG90 servo motors via PWM:
 1. **Turntable servo** rotates the platform to the correct bin position (OTHER=0°, METAL=45°, PAPER=135°, PLASTIC=180°).
@@ -76,7 +76,7 @@ User places garbage onto detection platform, then taps button
         ↓
 Raspberry Pi camera captures image
         ↓
-Hailo YOLOv8 + GPT-4V classifies the garbage
+Hailo YOLOv8 + GPT-5.5 classifies the garbage
         ↓
 Raspberry Pi turntable servo rotates to target bin position
         ↓
@@ -394,9 +394,9 @@ The system uses a two-stage AI pipeline:
 
 The Hailo AI Hat runs YOLOv8 on-device to detect objects in the captured image. It returns the top detected object label and confidence score. This stage acts as a fast pre-filter and provides the image path for stage 2.
 
-### 11.2 Stage 2 — GPT-4V Visual Language Model (VLM)
+### 11.2 Stage 2 — GPT-5.5 Visual Language Model (VLM)
 
-The captured image is sent to GPT-4V, which classifies the garbage into one of the following categories and determines the target bin:
+The captured image is sent to GPT-5.5, which classifies the garbage into one of the following categories and determines the target bin:
 
 | predicted_category | target_bin |
 |---|---|
@@ -424,7 +424,7 @@ START
 wait_for_touchscreen_tap()
 
 hailo_result = detect_object_detailed()   # Stage 1: Hailo YOLOv8
-vlm_result   = run_vlm(hailo_result["image_path"])  # Stage 2: GPT-4V
+vlm_result   = run_vlm(hailo_result["image_path"])  # Stage 2: GPT-5.5
 
 category = CATEGORY_MAP[vlm_result["predicted_category"]]
 # e.g. "metal_can" → Category.METAL
@@ -483,7 +483,7 @@ A simple demo flow can be:
 6. User taps "開始投遞" on the Kiosk touchscreen.
 7. Camera captures the image.
 8. Hailo detects an object in the frame.
-9. GPT-4V classifies it as metal_can → Category.METAL → turntable angle 45°.
+9. GPT-5.5 classifies it as metal_can → Category.METAL → turntable angle 45°.
 10. Turntable servo rotates to 45°.
 11. Gate servo A + B open → can drops into METAL bin → gates close.
 12. Turntable returns to idle (90°).
