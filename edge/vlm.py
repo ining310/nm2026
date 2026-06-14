@@ -13,28 +13,25 @@ Analyze the image of the garbage placed inside the detection area.
 
 Your task is to classify the object into exactly one of the following categories:
 
-1. metal_can
-2. plastic_bottle
-3. paper
-4. glass
-5. general_waste
-6. unknown
-7. multiple_categories
+1. plastic  — any plastic item (bottles, bags, cups, utensils, containers, etc.)
+2. metal    — any metal item (cans, foil, tins, etc.)
+3. paper    — any paper item (newspapers, cardboard, paper cups, tissue boxes, etc.)
+4. other    — anything that does not clearly fit the above three categories,
+              including glass, food waste, mixed items, unclear or dirty objects
 
 Rules:
-- If there is clearly one recyclable object, classify it into the most suitable category.
-- If the image contains multiple different objects, classify it as multiple_categories.
-- If the object is dirty, mixed, broken, unclear, blocked, or hard to identify, classify it as unknown.
-- If confidence is low, classify it as unknown.
-- Only set recyclable = true when the object clearly belongs to one recyclable category.
+- Classify into plastic, metal, or paper only if the object clearly belongs to that material.
+- If the object is unclear, dirty, mixed, or could belong to multiple categories, classify as other.
+- If confidence is low, classify as other.
+- Only set recyclable = true for plastic, metal, or paper with a clear single object.
 - Only set single_category = true when there is exactly one object and one clear category.
 - Do not guess if the object is unclear.
 
 Return only JSON in the following format:
 
 {
-  "predicted_category": "metal_can | plastic_bottle | paper | glass | general_waste | unknown | multiple_categories",
-  "target_bin": "Bin A | Bin B | Bin C | Bin D | manual_check",
+  "predicted_category": "plastic | metal | paper | other",
+  "target_bin": "Bin A | Bin B | Bin C | Bin D",
   "confidence": 0.0,
   "recyclable": true,
   "single_category": true,
@@ -43,17 +40,14 @@ Return only JSON in the following format:
 }
 
 Bin mapping:
-- metal_can → Bin A
-- plastic_bottle → Bin B
-- paper → Bin C
-- glass → Bin D
-- general_waste → manual_check
-- unknown → manual_check
-- multiple_categories → manual_check
+- metal   → Bin A
+- plastic → Bin B
+- paper   → Bin C
+- other   → Bin D
 
 Reward rule:
 - reward_eligible = true only if recyclable = true, single_category = true, and confidence >= 0.80.
-- Otherwise, reward_eligible = false.
+- reward_eligible = false for other category or low confidence.
 
 """
 

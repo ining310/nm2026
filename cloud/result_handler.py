@@ -9,13 +9,10 @@ import os
 from shared import db, iota, line_bot
 
 _CATEGORY_ZH = {
-    "metal_can":           "金屬罐",
-    "plastic_bottle":      "塑膠瓶",
-    "paper":               "紙類",
-    "glass":               "玻璃",
-    "general_waste":       "一般垃圾",
-    "unknown":             "無法辨識",
-    "multiple_categories": "多種類別混合",
+    "plastic": "塑膠",
+    "metal":   "金屬",
+    "paper":   "紙類",
+    "other":   "其他",
 }
 
 
