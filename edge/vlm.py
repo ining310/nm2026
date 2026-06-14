@@ -10,6 +10,7 @@ MODEL = "gpt-5.5"
 PROMPT = """You are the AI vision module of a smart recycling bin.
 
 Analyze the image of the garbage placed inside the detection area.
+The object to be classified will be placed on a brown platform. Classify that object only — the brown platform and any background elements are not part of the classification.
 
 Your task is to classify the object into exactly one of the following categories:
 
