@@ -409,9 +409,25 @@ class KioskApp:
                 _recycle_bin.dispose(category)
 
             # Step 4: cloud
-            api_send_result(session_id, result)
+            cloud_ok = True
+            try:
+                api_send_result(session_id, result)
+            except requests.HTTPError as http_exc:
+                status = http_exc.response.status_code if http_exc.response is not None else 0
+                if status in (502, 503, 504):
+                    # API Gateway timed out but Lambda is still running —
+                    # result will be saved and LINE push will still be sent.
+                    print(f"[WARN] /result returned {status}; Lambda likely still processing")
+                    cloud_ok = True
+                else:
+                    raise
+            except requests.Timeout:
+                # Our 90s timeout hit — Lambda is likely still running
+                print("[WARN] /result request timed out; Lambda likely still processing")
+                cloud_ok = True
 
-            self.root.after(0, self._show_result, result)
+            if cloud_ok:
+                self.root.after(0, self._show_result, result)
 
         except Exception as exc:
             print(f"[ERROR] detection: {exc}", file=sys.stderr)

@@ -108,6 +108,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler:     result_handler.handler
+      Timeout:     120     # IOTA tx can take >60s; override global
       Description: Receive AI result; send IOTA reward; push LINE message
       Policies:
         - DynamoDBCrudPolicy:

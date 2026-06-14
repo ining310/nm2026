@@ -45,29 +45,33 @@ def handler(event, context):
 
     # ── reward path ───────────────────────────────────────────────────────────
     if reward_eligible:
+        # 1. LINE 先通知（不等 IOTA）
         try:
-            amount_mist = int(os.environ["IOTA_REWARD_AMOUNT_MIST"])
-            tx          = iota.send_reward(wallet_address, amount_mist)
-            tx_digest    = tx["digest"]
-            explorer_url = tx["explorer_url"]
-
             line_bot.push(line_user_id, (
                 f"♻️ 分類成功！\n"
                 f"類別：{cat_zh}\n"
                 f"信心度：{confidence:.0%}\n\n"
-                f"🎉 已發放 3 IOTA 獎勵至您的錢包。\n\n"
-                f"🔗 {explorer_url}"
+                f"🎉 正在發放 3 IOTA 獎勵至您的錢包，請稍候…"
             ))
+        except Exception as line_exc:
+            print(f"[ERROR] LINE push (pre-IOTA) failed: {line_exc}")
+
+        # 2. IOTA 送金
+        try:
+            amount_mist = int(os.environ["IOTA_REWARD_AMOUNT_MIST"])
+            tx           = iota.send_reward(wallet_address, amount_mist)
+            tx_digest    = tx["digest"]
+            explorer_url = tx["explorer_url"]
+
+            line_bot.push(line_user_id, f"🔗 {explorer_url}")
         except Exception as exc:
             print(f"[ERROR] IOTA send_reward: {exc}")
             try:
                 line_bot.push(line_user_id, (
-                    f"♻️ 分類成功，但獎勵發送失敗，請聯繫管理員。\n"
-                    f"類別：{cat_zh}｜信心度：{confidence:.0%}\n"
-                    f"錯誤：{exc}"
+                    f"獎勵發送失敗，請聯繫管理員。\n錯誤：{exc}"
                 ))
             except Exception as line_exc:
-                print(f"[ERROR] LINE push failed: {line_exc}")
+                print(f"[ERROR] LINE push (IOTA error) failed: {line_exc}")
 
     # ── no-reward path ────────────────────────────────────────────────────────
     else:
