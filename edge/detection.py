@@ -66,6 +66,7 @@ def capture_image(save_path=None, warmup_seconds=2.0):
         picam2.capture_file(str(save_path))
     finally:
         picam2.stop()
+        picam2.close()
 
     frame = np.array(Image.open(save_path).convert("RGB"))
     return save_path, frame
