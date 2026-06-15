@@ -394,9 +394,10 @@ class KioskApp:
                 cat_key = result.get("predicted_category", "unknown")
                 from servo_control import Category
                 cat_map = {
-                    "metal_can":    Category.METAL,
-                    "plastic_bottle": Category.PLASTIC,
-                    "paper":        Category.PAPER,
+                    "plastic": Category.PLASTIC,
+                    "metal":   Category.METAL,
+                    "paper":   Category.PAPER,
+                    "other":   Category.OTHER,
                 }
                 category = cat_map.get(cat_key, Category.OTHER)
                 _recycle_bin.dispose(category)
