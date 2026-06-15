@@ -102,10 +102,10 @@ def save_wallet(line_user_id: str, wallet_address: str) -> None:
 def get_history_by_wallet(wallet_address: str, line_user_id: str) -> list:
     """Return all sessions for a wallet address, newest first."""
     CATEGORY_ZH = {
-        "metal_can": "金屬罐", "plastic_bottle": "塑膠瓶",
-        "paper": "紙類", "glass": "玻璃",
-        "general_waste": "一般垃圾", "unknown": "無法辨識",
-        "multiple_categories": "多種類別混合",
+        "plastic": "塑膠",
+        "metal":   "金屬",
+        "paper":   "紙類",
+        "other":   "其他",
     }
     resp = _get_table().query(
         IndexName="user_wallet_address-created_at-index",
