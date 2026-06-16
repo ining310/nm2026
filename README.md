@@ -1,16 +1,14 @@
 # AI Smart Recycling Bin with IOTA Wallet Reward System
-Updated: 2026/6/15
+Updated: 2026/6/17
 ## 1. Project Overview
 
 This project proposes an **AI-powered smart recycling bin** that automatically classifies waste and physically sorts it into the correct recycling bin. The system combines **Raspberry Pi, computer vision, motor control, IOTA wallet transactions, QR-code-based user interaction, and LINE chatbot integration**.
 
 The user first uses the camera on their phone to scan a QR code on the recycling machine. After scanning the QR code, the user is directed to a LIFF page where they enter their IOTA wallet address to register a recycling session. There is no entry fee.
 
-After registration, the Kiosk screen on the machine switches to show a "開始投遞" button. The user **places the garbage directly onto the detection platform** (there is no entry gate), then **taps the touchscreen button** to trigger the detection process.
+After registration, the Kiosk screen on the machine switches to show a "已放置，開始偵測" button. The user **places the garbage directly onto the detection platform** (there is no entry gate), then **taps the touchscreen button** to trigger the detection process.
 
-The Raspberry Pi camera then captures the image of the garbage. A two-stage AI pipeline runs:
-1. **Hailo AI Hat** (YOLOv8) performs real-time object detection to identify what is in the frame.
-2. **GPT-5.5 (VLM)** classifies the item into a recycling category and determines which bin it should go into.
+The Raspberry Pi camera then captures the image of the garbage. **GPT-5.5 (VLM)** classifies the item into a recycling category and determines which bin it should go into.
 
 After classification, the Raspberry Pi controls three SG90 servo motors via PWM:
 1. **Turntable servo** rotates the platform to the correct bin position (OTHER=0°, METAL=45°, PAPER=135°, PLASTIC=180°).
@@ -64,19 +62,19 @@ User scans QR code on Kiosk screen using phone camera
         ↓
 User is directed to LINE LIFF page
         ↓
-User enters their IOTA wallet address and clicks "確認投遞"
+User enters their IOTA wallet address and clicks "登記投遞"
         ↓
 Session registered (Lambda writes DynamoDB status to "paid")
         ↓
 Kiosk polls GET /check every 2s → detects paid session
         ↓
-Kiosk shows "開始投遞" touchscreen button
+Kiosk shows "已放置，開始偵測" touchscreen button
         ↓
 User places garbage onto detection platform, then taps button
         ↓
 Raspberry Pi camera captures image
         ↓
-Hailo YOLOv8 + GPT-5.5 classifies the garbage
+GPT-5.5 classifies the garbage
         ↓
 Raspberry Pi turntable servo rotates to target bin position
         ↓
@@ -117,7 +115,7 @@ This QR code helps the system identify which recycling machine the user is inter
 
 ### Step 2: User Registers a Recycling Session
 
-After scanning the QR code, the user is directed to the LIFF page. The user enters their IOTA wallet address and clicks "確認投遞". There is no entry fee.
+After scanning the QR code, the user is directed to the LIFF page. The user enters their IOTA wallet address and clicks "登記投遞". There is no entry fee.
 
 The Lambda `/pay` endpoint writes a session record to DynamoDB (status: `paid`) and notifies the user via LINE:
 
@@ -132,10 +130,10 @@ Bot: ✅ 登記成功！請將垃圾放上偵測平台，再按下機台上的�
 
 There is no entry gate. The user places the garbage **directly onto the open detection platform**.
 
-The Kiosk screen (running `main.py` on the Raspberry Pi) displays a "開始投遞" button after detecting a registered session. The user taps this button to start detection.
+The Kiosk screen (running `main.py` on the Raspberry Pi) displays a "已放置，開始偵測" button after detecting a registered session. The user taps this button to start detection.
 
 ```text
-User places garbage on platform → User taps "開始投遞" on screen → detection starts
+User places garbage on platform → User taps "已放置，開始偵測" on screen → detection starts
 ```
 
 ---
@@ -158,7 +156,7 @@ Example output:
 
 ```json
 {
-  "predicted_category": "metal_can",
+  "predicted_category": "metal",
   "target_bin": "Bin A",
   "confidence": 0.92,
   "recyclable": true,
@@ -182,7 +180,7 @@ The turntable servo rotates the platform to align with the correct bin. The idle
 Example:
 
 ```text
-predicted_category = "metal_can"  →  Category.METAL  →  turntable rotates to 45°
+predicted_category = "metal"  →  Category.METAL  →  turntable rotates to 45°
 ```
 
 ---
@@ -218,7 +216,7 @@ After the motors finish, the Raspberry Pi sends **one POST request** to the Lamb
 {
   "machine_id": "machine_001",
   "session_id": "abc123",
-  "category": "metal_can",
+  "category": "metal",
   "target_bin": "Bin A",
   "confidence": 0.92,
   "recyclable": true,
@@ -227,9 +225,9 @@ After the motors finish, the Raspberry Pi sends **one POST request** to the Lamb
 ```
 
 Lambda immediately:
-1. Determines reward or no-reward based on the result.
+1. Pushes the classification result to the user via LINE Messaging API.
 2. Executes the IOTA wallet transaction (reward) or skips it.
-3. Pushes the result to the user via LINE Messaging API.
+3. Pushes the explorer URL to LINE (reward case only).
 4. Updates the DynamoDB session status to `done`.
 
 There is no polling. The RPi fires once and moves on to reset.
@@ -264,11 +262,11 @@ Example result:
 
 ```json
 {
-  "category": "metal_can",
+  "category": "metal",
   "target_bin": "Bin A",
   "confidence": 0.92,
   "reward_status": "rewarded",
-  "amount_sent": 1.1
+  "amount_sent": 3.0
 }
 ```
 
@@ -290,8 +288,8 @@ Example result:
 
 ```json
 {
-  "category": "unknown",
-  "target_bin": "manual_check",
+  "category": "other",
+  "target_bin": "Bin D",
   "confidence": 0.43,
   "reward_status": "not_rewarded",
   "amount_sent": 0
@@ -319,7 +317,7 @@ The chatbot also connects the user session to the specific recycling machine tha
 ### 8.1 Successful Recycling Case
 
 ```text
-[User scans QR code → opens LIFF page → enters wallet address → clicks 確認投遞]
+[User scans QR code → opens LIFF page → enters wallet address → clicks 登記投遞]
 
 Bot: ✅ 登記成功！
 請將垃圾放上偵測平台，再按下機台上的按鈕開始偵測。
@@ -341,7 +339,7 @@ Bot: 🔗 https://explorer.iota.org/txblock/...?network=devnet
 ### 8.2 Failed Classification Case
 
 ```text
-[User scans QR code → opens LIFF page → enters wallet address → clicks 確認投遞]
+[User scans QR code → opens LIFF page → enters wallet address → clicks 登記投遞]
 
 Bot: ✅ 登記成功！
 請將垃圾放上偵測平台，再按下機台上的按鈕開始偵測。
@@ -350,7 +348,7 @@ AI 判斷可回收即可獲得 3 IOTA 獎勵。
 [User places garbage and presses button]
 
 Bot: ❌ 無法明確分類，未發送獎勵。
-類別：unknown　信心度：43%
+類別：其他　信心度：43%
 ```
 
 ---
@@ -359,8 +357,7 @@ Bot: ❌ 無法明確分類，未發送獎勵。
 
 | Component | Purpose |
 |---|---|
-| Raspberry Pi 5 | Main controller for camera, AI model, GPIO button, and servos |
-| Hailo AI Hat | Runs YOLOv8 object detection on-device in real time |
+| Raspberry Pi 5 | Main controller for camera, AI model, and servos |
 | Raspberry Pi Camera | Captures image of garbage |
 | Touchscreen Display | Shows Kiosk UI (QR code, session status, result); user taps to trigger detection |
 | SG90 Turntable Servo | Rotates the platform to the correct bin position (0°/45°/135°/180°) |
@@ -388,25 +385,14 @@ Bot: ❌ 無法明確分類，未發送獎勵。
 
 ## 11. AI Classification Design
 
-The system uses a two-stage AI pipeline:
+The Raspberry Pi camera captures an image of the garbage. The image is sent directly to **GPT-5.5 (VLM)**, which classifies the garbage into one of the following categories and determines the target bin:
 
-### 11.1 Stage 1 — Hailo Object Detection (YOLOv8)
-
-The Hailo AI Hat runs YOLOv8 on-device to detect objects in the captured image. It returns the top detected object label and confidence score. This stage acts as a fast pre-filter and provides the image path for stage 2.
-
-### 11.2 Stage 2 — GPT-5.5 Visual Language Model (VLM)
-
-The captured image is sent to GPT-5.5, which classifies the garbage into one of the following categories and determines the target bin:
-
-| predicted_category | target_bin |
-|---|---|
-| metal_can | Bin A → METAL (45°) |
-| plastic_bottle | Bin B → PLASTIC (180°) |
-| paper | Bin C → PAPER (135°) |
-| glass | Bin D → OTHER (0°) |
-| general_waste | manual_check → OTHER (0°) |
-| unknown | manual_check → OTHER (0°) |
-| multiple_categories | manual_check → OTHER (0°) |
+| predicted_category | target_bin | IOTA Reward |
+|---|---|---|
+| metal | Bin A → METAL (45°) | ✓ |
+| plastic | Bin B → PLASTIC (180°) | ✓ |
+| paper | Bin C → PAPER (135°) | ✓ |
+| other | Bin D → OTHER (0°) | ✗ |
 
 The VLM also returns `confidence`, `recyclable`, `single_category`, and `reward_eligible` fields used by Lambda to determine whether to issue an IOTA reward.
 
@@ -420,14 +406,14 @@ The Raspberry Pi follows this control logic:
 START
 
 # Kiosk background thread polls GET /check every 2s
-# When status == "paid", show "開始投遞" button on screen
+# When status == "paid", show "已放置，開始偵測" button on screen
 wait_for_touchscreen_tap()
 
-hailo_result = detect_object_detailed()   # Stage 1: Hailo YOLOv8
-vlm_result   = run_vlm(hailo_result["image_path"])  # Stage 2: GPT-5.5
+image_path = capture_image()              # PiCamera2 captures image
+vlm_result = run_vlm(image_path)         # GPT-5.5 classifies
 
 category = CATEGORY_MAP[vlm_result["predicted_category"]]
-# e.g. "metal_can" → Category.METAL
+# e.g. "metal" → Category.METAL
 
 recycle_bin.dispose(category)
 # 1. turntable rotates to category angle
@@ -477,13 +463,12 @@ A simple demo flow can be:
 ```text
 1. User opens the phone camera and scans the QR code on the recycling machine.
 2. The QR code opens the LIFF page.
-3. User enters their IOTA wallet address and clicks 確認投遞.
-4. Lambda registers the session. Kiosk screen detects the new session and shows "開始投遞" button.
+3. User enters their IOTA wallet address and clicks 登記投遞.
+4. Lambda registers the session. Kiosk screen detects the new session and shows "已放置，開始偵測" button.
 5. User places a metal can directly onto the detection platform.
-6. User taps "開始投遞" on the Kiosk touchscreen.
+6. User taps "已放置，開始偵測" on the Kiosk touchscreen.
 7. Camera captures the image.
-8. Hailo detects an object in the frame.
-9. GPT-5.5 classifies it as metal_can → Category.METAL → turntable angle 45°.
+8. GPT-5.5 classifies it as metal → Category.METAL → turntable angle 45°.
 10. Turntable servo rotates to 45°.
 11. Gate servo A + B open → can drops into METAL bin → gates close.
 12. Turntable returns to idle (90°).
