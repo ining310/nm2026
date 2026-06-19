@@ -73,8 +73,8 @@ print("4. POST /result (reward_eligible=False — skips IOTA tx)")
 r = requests.post(f"{API_BASE}/result", json={
     "session_id":        SESSION_ID,
     "machine_id":        MACHINE_ID,
-    "predicted_category": "unknown",
-    "target_bin":        "manual_check",
+    "predicted_category": "other",
+    "target_bin":        "Bin D",
     "confidence":        0.35,
     "recyclable":        False,
     "single_category":   False,

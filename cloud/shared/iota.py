@@ -70,11 +70,6 @@ def _sign(private_key_bytes: bytes, tx_bytes_b64: str) -> str:
 
 # ── public API ────────────────────────────────────────────────────────────────
 
-def get_machine_address() -> str:
-    """Return the IOTA address derived from the machine wallet private key."""
-    return _derive_address(_load_private_key())
-
-
 def send_reward(to_address: str, amount_mist: int) -> dict:
     """
     Transfer *amount_mist* MIST (1 IOTA = 1_000_000_000 MIST) from the
@@ -128,20 +123,3 @@ def send_reward(to_address: str, amount_mist: int) -> dict:
     digest       = exec_result["digest"]
     explorer_url = f"{explorer}/txblock/{digest}?network={network}"
     return {"digest": digest, "explorer_url": explorer_url}
-
-
-def request_faucet(address: str | None = None) -> str:
-    """
-    Request devnet tokens from the faucet for *address* (or the machine wallet).
-    Call once during initial setup (see cloud/scripts/setup_wallet.py).
-    """
-    if address is None:
-        address = get_machine_address()
-    faucet_url = os.environ["IOTA_FAUCET_URL"]
-    resp = requests.post(
-        faucet_url,
-        json={"FixedAmountRequest": {"recipient": address}},
-        timeout=30,
-    )
-    resp.raise_for_status()
-    return address

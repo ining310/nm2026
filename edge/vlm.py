@@ -1,10 +1,8 @@
-import argparse
 import os
-import sys
 from pathlib import Path
 
 from dotenv import load_dotenv
-from openai import AuthenticationError, OpenAI, RateLimitError
+from openai import OpenAI
 
 MODEL = "gpt-5.5"
 PROMPT = """You are the AI vision module of a smart recycling bin.
@@ -52,8 +50,6 @@ Reward rule:
 
 """
 
-DEFAULT_IMAGE = Path("captured.jpg")
-
 
 def get_api_key() -> str:
     load_dotenv(override=True)
@@ -83,30 +79,3 @@ def describe_image(client: OpenAI, image_path: Path, prompt: str = PROMPT) -> st
         ],
     )
     return response.output_text
-
-
-def main() -> None:
-    parser = argparse.ArgumentParser(description="Ask OpenAI about an image.")
-    parser.add_argument(
-        "prompt",
-        nargs="?",
-        default=PROMPT,
-    )
-    parser.add_argument(
-        "--image",
-        default=str(DEFAULT_IMAGE),
-        help=f"Path to the image file (default: {DEFAULT_IMAGE})",
-    )
-    args = parser.parse_args()
-
-    image_path = Path(args.image)
-    if not image_path.exists():
-        print(f"Error: image not found at {image_path}")
-        sys.exit(1)
-
-    client = OpenAI(api_key=get_api_key())
-    print(describe_image(client, image_path, prompt=args.prompt))
-
-
-if __name__ == "__main__":
-    main()

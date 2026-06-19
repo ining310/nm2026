@@ -13,7 +13,6 @@ Globals:
         PROFILES_TABLE:              !Ref ProfilesTable
         IOTA_NETWORK:                devnet
         IOTA_RPC_URL:                https://indexer.devnet.iota.cafe
-        IOTA_FAUCET_URL:             https://faucet.devnet.iota.cafe/gas
         IOTA_EXPLORER_BASE:          https://explorer.rebased.iota.org
         IOTA_REWARD_AMOUNT_MIST:     "3000000000"   # 3 IOTA
         LINE_CHANNEL_ACCESS_TOKEN:

@@ -9,10 +9,10 @@ States:
   error      error message for 8s, then back to waiting
 
 Run on Pi:
-  python kiosk.py
+  python main.py
 
 Dev mode (windowed 800x480):
-  python kiosk.py --windowed
+  python main.py --windowed
 """
 
 import argparse
@@ -31,12 +31,11 @@ from config import API_BASE, MACHINE_ID
 
 # ── Optional imports (graceful degradation on dev machine) ───────────────────
 try:
-    import qrcode
     from PIL import Image, ImageTk
     _QR_AVAILABLE = True
 except ImportError:
     _QR_AVAILABLE = False
-    print("[WARN] qrcode/Pillow not available; QR display disabled", file=sys.stderr)
+    print("[WARN] Pillow not available; QR display disabled", file=sys.stderr)
 
 try:
     from vlm import describe_image, get_api_key
@@ -72,7 +71,6 @@ REGISTERED_TIMEOUT_MS = 60_000   # reset if user doesn't press Start within 60s
 
 # Colors — matches LIFF palette
 BG            = "#F7F9FC"
-CARD_BG       = "#FFFFFF"
 ACCENT        = "#1E3A5F"
 ACCENT_BTN    = "#2C5282"
 ACCENT_BTN_HL = "#1A3A6E"
@@ -84,14 +82,6 @@ SUCCESS_CHIP  = "#D1FAE5"
 ERROR_TEXT    = "#B91C1C"
 ERROR_BG      = "#FEF2F2"
 ERROR_CHIP    = "#FEE2E2"
-REWARD_GREEN  = "#15803D"
-
-CATEGORY_MAP_SERVO = {
-    "plastic": "PLASTIC",
-    "metal":   "METAL",
-    "paper":   "PAPER",
-    "other":   "OTHER",
-}
 
 CATEGORY_ZH = {
     "plastic": "塑膠",
@@ -211,7 +201,7 @@ class KioskApp:
         tk.Label(inner, text="請掃描 QR Code 登記投遞", font=self.f_subtitle,
                  bg=BG, fg=MUTED).pack(pady=(0, 20))
 
-        # QR image from link.png (same directory as kiosk.py)
+        # QR image from link.png (same directory as main.py)
         _img_path = Path(__file__).parent / "link.png"
         try:
             if _QR_AVAILABLE:
@@ -371,7 +361,7 @@ class KioskApp:
         try:
             # Step 1: capture image
             if _DETECTION_AVAILABLE:
-                image_path, _ = capture_image()
+                image_path = capture_image()
             else:
                 image_path = "/tmp/mock_image.jpg"
                 print("[DETECT] mock image path used")
@@ -382,17 +372,16 @@ class KioskApp:
             else:
                 # Mock result for dev
                 result = {
-                    "predicted_category": "plastic_bottle",
+                    "predicted_category": "plastic",
                     "confidence": 0.88,
                     "reward_eligible": True,
-                    "reason": "PET plastic bottle detected (mock)",
+                    "reason": "plastic bottle detected (mock)",
                 }
             print(f"[VLM] {result}")
 
             # Step 3: servo
             if _SERVO_AVAILABLE and _recycle_bin:
-                cat_key = result.get("predicted_category", "unknown")
-                from servo_control import Category
+                cat_key = result.get("predicted_category", "other")
                 cat_map = {
                     "plastic": Category.PLASTIC,
                     "metal":   Category.METAL,
@@ -403,7 +392,6 @@ class KioskApp:
                 _recycle_bin.dispose(category)
 
             # Step 4: cloud
-            cloud_ok = True
             try:
                 api_send_result(session_id, result)
             except requests.HTTPError as http_exc:
@@ -412,16 +400,13 @@ class KioskApp:
                     # API Gateway timed out but Lambda is still running —
                     # result will be saved and LINE push will still be sent.
                     print(f"[WARN] /result returned {status}; Lambda likely still processing")
-                    cloud_ok = True
                 else:
                     raise
             except requests.Timeout:
                 # Our 90s timeout hit — Lambda is likely still running
                 print("[WARN] /result request timed out; Lambda likely still processing")
-                cloud_ok = True
 
-            if cloud_ok:
-                self.root.after(0, self._show_result, result)
+            self.root.after(0, self._show_result, result)
 
         except Exception as exc:
             print(f"[ERROR] detection: {exc}", file=sys.stderr)
@@ -429,7 +414,7 @@ class KioskApp:
 
     def _show_result(self, result: dict):
         rewarded  = bool(result.get("reward_eligible", False))
-        cat_key   = result.get("predicted_category", "unknown")
+        cat_key   = result.get("predicted_category", "other")
         cat_zh    = CATEGORY_ZH.get(cat_key, cat_key)
         conf      = float(result.get("confidence", 0))
         conf_pct  = f"{conf:.0%}"

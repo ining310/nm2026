@@ -450,7 +450,7 @@ The demo can include:
   - metal can
   - plastic bottle
   - paper cup
-  - unknown object
+  - other item (e.g. food waste)
 - LINE chatbot interface
 - simulated or real IOTA wallet transaction
 
